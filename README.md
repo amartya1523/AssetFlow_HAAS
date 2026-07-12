@@ -28,19 +28,33 @@ AssetFlow is an Enterprise Asset & Resource Management System that helps organiz
 ### Backend
 
 ```bash
-cd backend && npm install && npm run dev
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run dev
 ```
 
 The API starts on `http://localhost:5000`. Verify it with the health check:
 
 ```
-http://localhost:5000/api/v1/health  ->  { "status": "ok" }
+http://localhost:5000/api/v1/health
 ```
 
 ### Frontend
 
 ```bash
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
-The Vite dev server starts (by default on `http://localhost:5173`) and renders the placeholder app.
+The Vite dev server starts on `http://localhost:5173` by default and loads the authentication flow plus the protected AssetFlow app shell.
+
+## Current Progress
+
+- Task 1: project scaffolding completed
+- Task 2: Prisma schema aligned to the architecture-first task contract
+- Task 3: Express middleware and response utilities completed
+- Task 4: authentication APIs implemented
+- Task 5: auth screens and protected app shell wired into routing

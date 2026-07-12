@@ -1,0 +1,115 @@
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-lg);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.brandName {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+/* Navigation */
+.nav {
+  flex: 1;
+  padding: var(--space-md) var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color var(--transition-fast), background var(--transition-fast);
+  z-index: 1;
+}
+.nav a:hover {
+  color: var(--sidebar-text-hover);
+  background: rgba(255,255,255,0.04);
+}
+.nav a.active {
+  color: var(--sidebar-active-text);
+}
+
+.activePill {
+  position: absolute;
+  inset: 0;
+  background: var(--sidebar-active-bg);
+  border-radius: var(--radius-md);
+  z-index: -1;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* Footer / user */
+.footer {
+  padding: var(--space-md);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs);
+  border-radius: var(--radius-md);
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.userMeta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.userName {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.userRole {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  text-transform: capitalize;
+}

@@ -24,6 +24,11 @@ enum UserRole {
   ADMIN
 }
 
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum AssetStatus {
   AVAILABLE
   ALLOCATED
@@ -37,54 +42,47 @@ enum AssetStatus {
 enum AllocationStatus {
   ACTIVE
   RETURNED
-  REVOKED
+  OVERDUE
 }
 
 enum TransferStatus {
-  PENDING
+  REQUESTED
   APPROVED
   REJECTED
   COMPLETED
-  CANCELLED
 }
 
 enum BookingStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  ACTIVE
+  UPCOMING
+  ONGOING
   COMPLETED
   CANCELLED
 }
 
-enum MaintenanceType {
-  PREVENTIVE
-  CORRECTIVE
-  INSPECTION
-  REPAIR
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum MaintenanceStatus {
-  REQUESTED
+  PENDING
   APPROVED
+  REJECTED
+  TECHNICIAN_ASSIGNED
   IN_PROGRESS
-  COMPLETED
-  CANCELLED
+  RESOLVED
 }
 
 enum AuditCycleStatus {
-  DRAFT
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
+  OPEN
+  CLOSED
 }
 
-enum AuditItemStatus {
-  PENDING
+enum AuditResult {
   VERIFIED
-  MISMATCH
   MISSING
-  NOT_FOUND
+  DAMAGED
 }
 
 enum NotificationCategory {
@@ -99,55 +97,63 @@ enum NotificationCategory {
 // -----------------------------------------------------------------------------
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  phone        String?
-  avatarUrl    String?
-  role         UserRole @default(EMPLOYEE)
-  isActive     Boolean  @default(true)
-  passwordResetToken    String?
+  id                     String       @id @default(uuid())
+  name                   String
+  email                  String       @unique
+  passwordHash           String
+  phone                  String?
+  avatarUrl              String?
+  role                   UserRole     @default(EMPLOYEE)
+  status                 RecordStatus @default(ACTIVE)
+  passwordResetTokenHash String?
   passwordResetExpiresAt DateTime?
-  departmentId String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  departmentId           String?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
 
-  // Relations
-  department          Department?      @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
-  headOfDepartment    Department?      @relation("DepartmentHead")
-  allocations         Allocation[]
-  transfersInitiated  Transfer[]       @relation("TransferInitiator")
-  transfersReceived   Transfer[]       @relation("TransferReceiver")
-  bookings            Booking[]
-  maintenanceRequests MaintenanceRequest[]
-  auditCycles         AuditCycleAuditor[]
-  auditItems          AuditItem[]      @relation("AuditItemAuditor")
-  notifications       Notification[]
-  activityLogs        ActivityLog[]
+  department           Department?           @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
+  headedDepartment     Department[]          @relation("DepartmentHead")
+  allocations          Allocation[]          @relation("AllocationToUser")
+  transfersFrom        Transfer[]            @relation("TransferFromUser")
+  transfersTo          Transfer[]            @relation("TransferToUser")
+  transfersRequested   Transfer[]            @relation("TransferRequestedBy")
+  bookings             Booking[]             @relation("BookingByUser")
+  maintenanceRaised    MaintenanceRequest[]  @relation("MaintenanceRaisedBy")
+  maintenanceApproved  MaintenanceRequest[]  @relation("MaintenanceApprovedBy")
+  createdAuditCycles   AuditCycle[]          @relation("AuditCycleCreatedBy")
+  auditAssignments     AuditCycleAuditor[]   @relation("AuditCycleAuditorUser")
+  notifications        Notification[]
+  activityLogs         ActivityLog[]
 
   @@index([role])
+  @@index([status])
   @@index([departmentId])
+  @@index([createdAt])
   @@map("users")
 }
 
 model Department {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  code        String   @unique
-  description String?
-  headId      String?  @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String       @id @default(uuid())
+  name               String
+  code               String       @unique
+  headId             String?
+  parentDepartmentId String?
+  status             RecordStatus @default(ACTIVE)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
-  // Relations
-  head     User?     @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
-  members  User[]    @relation("DepartmentMembers")
-  assets   Asset[]
-  bookings Booking[]
+  head               User?         @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
+  parentDepartment   Department?   @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
+  childDepartments   Department[]  @relation("DepartmentHierarchy")
+  members            User[]        @relation("DepartmentMembers")
+  assets             Asset[]
+  allocations        Allocation[]  @relation("AllocationToDepartment")
+  scopedAuditCycles  AuditCycle[]  @relation("AuditCycleDepartment")
 
+  @@unique([name, code])
   @@index([headId])
+  @@index([parentDepartmentId])
+  @@index([status])
   @@map("departments")
 }
 
@@ -156,53 +162,50 @@ model Department {
 // -----------------------------------------------------------------------------
 
 model AssetCategory {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  code        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String       @id @default(uuid())
+  name             String       @unique
+  extraFieldsSchema Json?
+  status           RecordStatus @default(ACTIVE)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   assets Asset[]
 
+  @@index([status])
   @@map("asset_categories")
 }
 
 model Asset {
-  id          String      @id @default(uuid())
-  assetTag    String      @unique
-  name        String
-  description String?
-  status      AssetStatus @default(AVAILABLE)
-  serialNumber String?
-  model       String?
-  brand       String?
-  purchaseDate DateTime?
-  purchaseValue Decimal?  @db.Decimal(12, 2)
-  currentValue  Decimal?  @db.Decimal(12, 2)
-  imageUrl    String?
-  location    String?
-  notes       String?
+  id              String      @id @default(uuid())
+  name            String
+  categoryId      String
+  departmentId    String?
+  assetTag        String      @unique
+  serialNumber    String?
+  acquisitionDate DateTime?
+  acquisitionCost Decimal?    @db.Decimal(12, 2)
+  condition       String?
+  location        String?
+  photoUrl        String?
+  isBookable      Boolean     @default(false)
+  status          AssetStatus @default(AVAILABLE)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  categoryId   String         @unique
-  departmentId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  category          AssetCategory      @relation(fields: [categoryId], references: [id])
-  department        Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  allocations       Allocation[]       @relation("AssetAllocationHistory")
-  transfers         Transfer[]
-  bookings          Booking[]
+  category            AssetCategory        @relation(fields: [categoryId], references: [id])
+  department          Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  allocations         Allocation[]
+  transfers           Transfer[]
+  bookings            Booking[]
   maintenanceRequests MaintenanceRequest[]
-  auditItems        AuditItem[]
+  auditItems          AuditItem[]
 
+  @@index([assetTag])
+  @@index([serialNumber])
   @@index([status])
   @@index([categoryId])
   @@index([departmentId])
-  @@index([assetTag])
+  @@index([location])
   @@index([createdAt])
   @@map("assets")
 }
@@ -212,51 +215,55 @@ model Asset {
 // -----------------------------------------------------------------------------
 
 model Allocation {
-  id         String           @id @default(uuid())
-  assetId    String
-  userId     String
-  status     AllocationStatus @default(ACTIVE)
-  notes      String?
-  allocatedAt DateTime        @default(now())
-  returnedAt DateTime?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id                      String           @id @default(uuid())
+  assetId                 String
+  allocatedToUserId       String?
+  allocatedToDepartmentId String?
+  allocatedAt             DateTime         @default(now())
+  expectedReturnDate      DateTime?
+  actualReturnDate        DateTime?
+  conditionNoteOnReturn   String?
+  status                  AllocationStatus @default(ACTIVE)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
 
-  asset Asset @relation("AssetAllocationHistory", fields: [assetId], references: [id])
-  user  User  @relation(fields: [userId], references: [id])
+  asset                 Asset       @relation(fields: [assetId], references: [id])
+  allocatedToUser       User?       @relation("AllocationToUser", fields: [allocatedToUserId], references: [id], onDelete: SetNull)
+  allocatedToDepartment Department? @relation("AllocationToDepartment", fields: [allocatedToDepartmentId], references: [id], onDelete: SetNull)
 
   @@index([assetId])
-  @@index([userId])
+  @@index([allocatedToUserId])
+  @@index([allocatedToDepartmentId])
   @@index([status])
+  @@index([expectedReturnDate])
   @@index([createdAt])
   @@map("allocations")
 }
 
 model Transfer {
-  id          String         @id @default(uuid())
-  assetId     String
-  fromDepartmentId String?
-  toDepartmentId   String?
-  initiatedById String
-  receivedById  String?
-  status      TransferStatus @default(PENDING)
-  reason      String
-  notes       String?
-  requestedAt DateTime       @default(now())
-  approvedAt  DateTime?
-  completedAt DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id            String         @id @default(uuid())
+  assetId        String
+  fromUserId     String?
+  toUserId       String?
+  requestedById  String
+  reason         String
+  status         TransferStatus @default(REQUESTED)
+  requestedAt    DateTime       @default(now())
+  resolvedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  asset       Asset      @relation(fields: [assetId], references: [id])
-  initiator   User       @relation("TransferInitiator", fields: [initiatedById], references: [id])
-  receiver    User?      @relation("TransferReceiver", fields: [receivedById], references: [id], onDelete: SetNull)
+  asset         Asset  @relation(fields: [assetId], references: [id])
+  fromUser      User?  @relation("TransferFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser        User?  @relation("TransferToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+  requestedBy   User   @relation("TransferRequestedBy", fields: [requestedById], references: [id])
 
   @@index([assetId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([requestedById])
   @@index([status])
-  @@index([initiatedById])
-  @@index([toDepartmentId])
-  @@index([createdAt])
+  @@index([requestedAt])
   @@map("transfers")
 }
 
@@ -265,28 +272,23 @@ model Transfer {
 // -----------------------------------------------------------------------------
 
 model Booking {
-  id          String        @id @default(uuid())
+  id         String        @id @default(uuid())
   assetId     String
-  userId      String
-  departmentId String?
-  status      BookingStatus @default(PENDING)
-  purpose     String
+  bookedById  String
   startTime   DateTime
   endTime     DateTime
-  notes       String?
+  status      BookingStatus @default(UPCOMING)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  asset      Asset      @relation(fields: [assetId], references: [id])
-  user       User       @relation(fields: [userId], references: [id])
-  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  asset     Asset @relation(fields: [assetId], references: [id])
+  bookedBy  User  @relation("BookingByUser", fields: [bookedById], references: [id])
 
   @@index([assetId])
-  @@index([userId])
+  @@index([bookedById])
   @@index([status])
   @@index([startTime])
   @@index([endTime])
-  @@index([departmentId])
   @@index([createdAt])
   @@map("bookings")
 }
@@ -296,29 +298,29 @@ model Booking {
 // -----------------------------------------------------------------------------
 
 model MaintenanceRequest {
-  id           String           @id @default(uuid())
-  assetId      String
-  requestedById String
-  assignedToId String?
-  type         MaintenanceType  @default(CORRECTIVE)
-  status       MaintenanceStatus @default(REQUESTED)
-  issue        String
-  resolution   String?
-  cost         Decimal?         @db.Decimal(12, 2)
-  requestedAt  DateTime         @default(now())
-  scheduledAt  DateTime?
-  startedAt    DateTime?
-  completedAt  DateTime?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id              String              @id @default(uuid())
+  assetId          String
+  raisedById       String
+  issueDescription String
+  priority         MaintenancePriority @default(MEDIUM)
+  photoUrl         String?
+  status           MaintenanceStatus   @default(PENDING)
+  technicianName   String?
+  rejectionReason  String?
+  approvedById     String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  resolvedAt       DateTime?
 
-  asset       Asset @relation(fields: [assetId], references: [id])
-  requestedBy User  @relation(fields: [requestedById], references: [id])
+  asset       Asset  @relation(fields: [assetId], references: [id])
+  raisedBy    User   @relation("MaintenanceRaisedBy", fields: [raisedById], references: [id])
+  approvedBy  User?  @relation("MaintenanceApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   @@index([assetId])
+  @@index([raisedById])
+  @@index([approvedById])
   @@index([status])
-  @@index([type])
-  @@index([requestedById])
+  @@index([priority])
   @@index([createdAt])
   @@map("maintenance_requests")
 }
@@ -328,59 +330,62 @@ model MaintenanceRequest {
 // -----------------------------------------------------------------------------
 
 model AuditCycle {
-  id          String           @id @default(uuid())
-  name        String
-  description String?
-  status      AuditCycleStatus @default(DRAFT)
-  startDate   DateTime
-  endDate     DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(uuid())
+  name             String
+  scopeDepartmentId String?
+  scopeLocation    String?
+  startDate        DateTime
+  endDate          DateTime
+  status           AuditCycleStatus @default(OPEN)
+  createdById      String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  auditors AuditCycleAuditor[]
-  items    AuditItem[]
+  scopeDepartment Department?       @relation("AuditCycleDepartment", fields: [scopeDepartmentId], references: [id], onDelete: SetNull)
+  createdBy       User              @relation("AuditCycleCreatedBy", fields: [createdById], references: [id])
+  auditors        AuditCycleAuditor[]
+  items           AuditItem[]
 
+  @@index([scopeDepartmentId])
   @@index([status])
   @@index([startDate])
+  @@index([endDate])
+  @@index([createdById])
   @@index([createdAt])
   @@map("audit_cycles")
 }
 
 model AuditCycleAuditor {
-  id          String     @id @default(uuid())
+  id          String    @id @default(uuid())
   auditCycleId String
-  userId      String
-  assignedAt  DateTime   @default(now())
+  auditorId    String
+  assignedAt   DateTime  @default(now())
 
   auditCycle AuditCycle @relation(fields: [auditCycleId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id])
+  auditor    User       @relation("AuditCycleAuditorUser", fields: [auditorId], references: [id])
 
-  @@unique([auditCycleId, userId])
-  @@index([userId])
+  @@unique([auditCycleId, auditorId])
+  @@index([auditorId])
   @@map("audit_cycle_auditors")
 }
 
 model AuditItem {
-  id              String         @id @default(uuid())
-  auditCycleId    String
-  assetId         String
-  auditorId       String?
-  status          AuditItemStatus @default(PENDING)
+  id               String      @id @default(uuid())
+  auditCycleId     String
+  assetId          String
   expectedLocation String?
-  actualLocation  String?
-  remarks         String?
-  checkedAt       DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  result           AuditResult?
+  notes            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
   auditCycle AuditCycle @relation(fields: [auditCycleId], references: [id], onDelete: Cascade)
   asset      Asset      @relation(fields: [assetId], references: [id])
-  auditor    User?      @relation("AuditItemAuditor", fields: [auditorId], references: [id], onDelete: SetNull)
 
+  @@unique([auditCycleId, assetId])
   @@index([auditCycleId])
   @@index([assetId])
-  @@index([status])
-  @@index([auditorId])
+  @@index([result])
   @@map("audit_items")
 }
 
@@ -389,33 +394,32 @@ model AuditItem {
 // -----------------------------------------------------------------------------
 
 model Notification {
-  id         String               @id @default(uuid())
-  userId     String
-  category   NotificationCategory @default(GENERAL)
-  title      String
-  message    String
-  isRead     Boolean              @default(false)
-  linkUrl    String?
-  createdAt  DateTime             @default(now())
+  id        String               @id @default(uuid())
+  userId    String
+  category  NotificationCategory @default(GENERAL)
+  type      String
+  message   String
+  isRead    Boolean              @default(false)
+  createdAt DateTime             @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([category])
+  @@index([type])
   @@index([isRead])
   @@index([createdAt])
   @@map("notifications")
 }
 
 model ActivityLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  action    String
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
   entityType String
-  entityId  String?
-  metadata  Json?
-  ipAddress String?
-  createdAt DateTime @default(now())
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 

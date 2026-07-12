@@ -1,0 +1,13 @@
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #7c3aed 100%);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.5);
+  flex-shrink: 0;
+}

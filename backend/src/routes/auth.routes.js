@@ -15,8 +15,7 @@ router.post(
     body('password')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters'),
-    body('firstName').trim().notEmpty().withMessage('First name is required'),
-    body('lastName').trim().notEmpty().withMessage('Last name is required'),
+    body('name').trim().notEmpty().withMessage('Name is required'),
   ],
   validate,
   authController.signup,

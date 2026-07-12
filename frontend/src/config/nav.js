@@ -1,0 +1,28 @@
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  ArrowLeftRight,
+  CalendarClock,
+  Wrench,
+  ClipboardCheck,
+  BarChart3,
+  Bell,
+} from 'lucide-react';
+
+/**
+ * Sidebar navigation — exact 9 items in required order.
+ * roles: undefined = visible to all authenticated users.
+ * Used by the sidebar for role-based visibility.
+ */
+export const NAV_ITEMS = [
+  { label: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },
+  { label: 'Organization Setup', path: '/app/organization', icon: Building2, roles: ['ADMIN'] },
+  { label: 'Assets', path: '/app/assets', icon: Package },
+  { label: 'Allocation & Transfer', path: '/app/allocation', icon: ArrowLeftRight },
+  { label: 'Resource Booking', path: '/app/booking', icon: CalendarClock },
+  { label: 'Maintenance', path: '/app/maintenance', icon: Wrench },
+  { label: 'Audit', path: '/app/audit', icon: ClipboardCheck, roles: ['ADMIN', 'ASSET_MANAGER', 'DEPARTMENT_HEAD'] },
+  { label: 'Reports', path: '/app/reports', icon: BarChart3, roles: ['ADMIN', 'ASSET_MANAGER', 'DEPARTMENT_HEAD'] },
+  { label: 'Notifications', path: '/app/notifications', icon: Bell },
+];

@@ -22,13 +22,25 @@ function generateToken(userId, role) {
   });
 }
 
+function hashResetToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 // ─── Public methods ─────────────────────────────────────────────────────────
 
 /**
  * Signup — always creates role EMPLOYEE. Never accepts a role from the
  * client (non-self-elevating).
  */
-async function signup({ email, password, firstName, lastName, phone }) {
+async function signup({ name, email, password, firstName, lastName, phone }) {
+  const normalizedName = (
+    name?.trim() || [firstName, lastName].filter(Boolean).join(' ').trim()
+  );
+
+  if (!normalizedName) {
+    throw ApiError.badRequest('Name is required');
+  }
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw ApiError.conflict('Email already registered');
@@ -38,20 +50,20 @@ async function signup({ email, password, firstName, lastName, phone }) {
 
   const user = await prisma.user.create({
     data: {
+      name: normalizedName,
       email,
       passwordHash,
-      firstName,
-      lastName,
       phone,
       role: 'EMPLOYEE', // always EMPLOYEE — non-self-elevating
+      status: 'ACTIVE',
     },
     select: {
       id: true,
+      name: true,
       email: true,
-      firstName: true,
-      lastName: true,
       phone: true,
       role: true,
+      status: true,
       createdAt: true,
     },
   });
@@ -75,7 +87,7 @@ async function login({ email, password }) {
     throw ApiError.unauthorized('Invalid email or password');
   }
 
-  if (!user.isActive) {
+  if (user.status !== 'ACTIVE') {
     throw ApiError.forbidden('Account is disabled');
   }
 
@@ -84,11 +96,11 @@ async function login({ email, password }) {
   return {
     user: {
       id: user.id,
+      name: user.name,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
       phone: user.phone,
       role: user.role,
+      status: user.status,
       avatarUrl: user.avatarUrl,
     },
     token,
@@ -103,13 +115,12 @@ async function getMe(userId) {
     where: { id: userId },
     select: {
       id: true,
+      name: true,
       email: true,
-      firstName: true,
-      lastName: true,
       phone: true,
       role: true,
       avatarUrl: true,
-      isActive: true,
+      status: true,
       department: { select: { id: true, name: true } },
       createdAt: true,
     },
@@ -134,12 +145,13 @@ async function forgotPassword(email) {
   }
 
   const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = hashResetToken(resetToken);
   const resetExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
 
   await prisma.user.update({
     where: { id: user.id },
     data: {
-      passwordResetToken: resetToken,
+      passwordResetTokenHash: resetTokenHash,
       passwordResetExpiresAt: resetExpiresAt,
     },
   });
@@ -155,9 +167,11 @@ async function forgotPassword(email) {
  * Reset password — verifies token and updates password.
  */
 async function resetPassword({ token, newPassword }) {
+  const hashedToken = hashResetToken(token);
+
   const user = await prisma.user.findFirst({
     where: {
-      passwordResetToken: token,
+      passwordResetTokenHash: hashedToken,
       passwordResetExpiresAt: { gt: new Date() },
     },
   });
@@ -172,7 +186,7 @@ async function resetPassword({ token, newPassword }) {
     where: { id: user.id },
     data: {
       passwordHash,
-      passwordResetToken: null,
+      passwordResetTokenHash: null,
       passwordResetExpiresAt: null,
     },
   });
