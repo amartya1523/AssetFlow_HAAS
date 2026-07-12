@@ -16,6 +16,7 @@ import Maintenance from './pages/Maintenance';
 import Audit from './pages/Audit';
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
+import Home from './pages/Home';
 
 function PublicOnlyRoute() {
   const token = useAuthStore((state) => state.token);
@@ -56,7 +57,7 @@ function App() {
     <BrowserRouter>
       <AuthBootstrap>
         <Routes>
-          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="/" element={<Home />} />
 
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
