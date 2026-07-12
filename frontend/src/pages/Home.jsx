@@ -52,7 +52,7 @@ export default function Home() {
       <motion.div
         className={styles.pointerSpotlight}
         style={{
-          background: useMotionTemplate`radial-gradient(450px circle at ${mouseX}px ${mouseY}px, rgba(99, 102, 241, 0.12), transparent 80%)`,
+          background: useMotionTemplate`radial-gradient(550px circle at ${mouseX}px ${mouseY}px, rgba(99, 102, 241, 0.12), transparent 80%)`,
         }}
       />
 
@@ -85,6 +85,11 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className={styles.hero}>
+        {/* Full background 3D canvas */}
+        <Suspense fallback={null}>
+          <Hero3D />
+        </Suspense>
+
         <div className={styles.heroContainer}>
           <motion.div
             className={styles.heroContent}
@@ -106,7 +111,7 @@ export default function Home() {
             </motion.h2>
             
             <motion.p className={styles.heroDescription} variants={itemVariants}>
-              Digitize physical inventories and shared rooms. Replace manual spreadsheets with conflict-free allocation, automated maintenance approval loops, and structured audits.
+              Digitize physical inventories and shared rooms. Replace manual spreadsheets with conflict-free allocation, automated maintenance loops, and structured audits.
             </motion.p>
             
             <motion.div className={styles.heroActions} variants={itemVariants}>
@@ -143,33 +148,66 @@ export default function Home() {
             </motion.div>
           </motion.div>
 
-          {/* Futuristic Visual Container for the 3D scene */}
-          <div className={styles.heroVisualContainer}>
-            <div className={styles.hudOutline}>
-              {/* Telemetry Telemetry badges */}
-              <div className={styles.telemetryTag}>
-                <span className={styles.pulseDot} />
-                <span>3D WORKSPACE STABILIZED</span>
+          {/* Floating Premium Dashboard Mockup widget on the right */}
+          <motion.div 
+            className={styles.floatingWidgetContainer}
+            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+          >
+            <div className={styles.glassDashboard}>
+              <div className={styles.widgetHeader}>
+                <div className={styles.widgetControlDots}>
+                  <span className={styles.dotRed} />
+                  <span className={styles.dotYellow} />
+                  <span className={styles.dotGreen} />
+                </div>
+                <div className={styles.widgetTitle}>Live Assets Console</div>
+                <div className={styles.telemetryPulseContainer}>
+                  <span className={styles.telemetryPulse} />
+                  <span>SYNCED</span>
+                </div>
               </div>
-              <div className={styles.techLabel}>SYSTEM MONITOR [ACTIVE]</div>
-              
-              {/* Corner crosshairs for HUD styling */}
-              <span className={`${styles.corner} ${styles.topLeft}`} />
-              <span className={`${styles.corner} ${styles.topRight}`} />
-              <span className={`${styles.corner} ${styles.bottomLeft}`} />
-              <span className={`${styles.corner} ${styles.bottomRight}`} />
 
-              <div className={styles.heroVisual}>
-                <Suspense fallback={
-                  <div className={styles.fallbackSpinner}>
-                    <span>LOADING WORKSPACE</span>
+              <div className={styles.widgetList}>
+                <div className={styles.widgetItem}>
+                  <div className={styles.itemInfo}>
+                    <span className={styles.itemName}>MacBook Pro M3 Max</span>
+                    <span className={styles.itemMeta}>ID: AF-8022 • IT Department</span>
                   </div>
-                }>
-                  <Hero3D />
-                </Suspense>
+                  <span className={`${styles.itemStatus} ${styles.statusActive}`}>ACTIVE</span>
+                </div>
+
+                <div className={styles.widgetItem}>
+                  <div className={styles.itemInfo}>
+                    <span className={styles.itemName}>Conference Room Beta</span>
+                    <span className={styles.itemMeta}>Time: 14:00 - 16:30 • Reserved</span>
+                  </div>
+                  <span className={`${styles.itemStatus} ${styles.statusReserved}`}>BOOKED</span>
+                </div>
+
+                <div className={styles.widgetItem}>
+                  <div className={styles.itemInfo}>
+                    <span className={styles.itemName}>3D Printer Rig Alpha</span>
+                    <span className={styles.itemMeta}>Ticket: #M-9022 • Heating Issue</span>
+                  </div>
+                  <span className={`${styles.itemStatus} ${styles.statusMaintenance}`}>REPAIR</span>
+                </div>
+              </div>
+
+              {/* Graphical representation overlay */}
+              <div className={styles.graphContainer}>
+                <div className={styles.graphLabel}>Resource Utilization</div>
+                <div className={styles.graphBars}>
+                  <div className={styles.graphBar} style={{ '--bar-h': '60%' }} />
+                  <div className={styles.graphBar} style={{ '--bar-h': '85%' }} />
+                  <div className={styles.graphBar} style={{ '--bar-h': '45%' }} />
+                  <div className={styles.graphBar} style={{ '--bar-h': '70%' }} />
+                  <div className={styles.graphBar} style={{ '--bar-h': '90%' }} />
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
