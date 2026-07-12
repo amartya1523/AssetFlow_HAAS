@@ -59,9 +59,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
 
+          <Route path="/signup" element={<Signup />} />
+
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
@@ -73,18 +74,18 @@ function App() {
               </RequireAuth>
             )}
           >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/assets" element={<Assets />} />
-            <Route path="/assets/:id" element={<AssetDetail />} />
-            <Route path="/allocation" element={<Allocation />} />
-            <Route path="/booking" element={<Booking />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/audit" element={<Audit />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/notifications" element={<Notifications />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="assets" element={<Assets />} />
+            <Route path="assets/:id" element={<AssetDetail />} />
+            <Route path="allocation" element={<Allocation />} />
+            <Route path="booking" element={<Booking />} />
+            <Route path="maintenance" element={<Maintenance />} />
+            <Route path="audit" element={<Audit />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="notifications" element={<Notifications />} />
 
             <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
-              <Route path="/organization" element={<Organization />} />
+              <Route path="organization" element={<Organization />} />
             </Route>
           </Route>
 

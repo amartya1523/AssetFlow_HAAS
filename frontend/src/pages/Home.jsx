@@ -3,14 +3,17 @@ import { motion, useMotionTemplate, useMotionValue, useTransform } from 'framer-
 import { Link } from 'react-router-dom';
 import FeaturesSection from '../components/FeatureCard';
 import HowItWorks from '../components/HowItWorks';
-import TechStrip from '../components/TechStrip';
-import CTA from '../components/CTA';
 import Footer from '../components/Footer';
+import OrgStructure from '../components/OrgStructure';
+import ContactSection from '../components/ContactSection';
+import useAuthStore from '../context/authStore';
 import styles from './Home.module.css';
 
 const Hero3D = lazy(() => import('../components/Hero3D'));
 
 export default function Home() {
+  const token = useAuthStore((s) => s.token);
+
   // Normalized pointer coordinates for page-wide parallax shifts
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -77,11 +80,15 @@ export default function Home() {
       <nav className={styles.nav}>
         <div className={styles.navContainer}>
           <div className={styles.brand}>
-            <span className={styles.navLogo}>AF</span>
+            <img src="/logo.jpg" alt="AssetFlow" className={styles.navLogo} />
             <span className={styles.navLogoText}>AssetFlow</span>
           </div>
           <div className={styles.navActions}>
-            <Link to="/login" className={styles.loginLink}>Sign In</Link>
+            {/* Sign In → /dashboard if already logged in, else /login */}
+            <Link to={token ? '/dashboard' : '/login'} className={styles.loginLink}>
+              {token ? 'Go to Dashboard' : 'Sign In'}
+            </Link>
+            {/* Get Started → always /signup */}
             <Link to="/signup">
               <button className={styles.navButton}>Get Started</button>
             </Link>
@@ -127,7 +134,7 @@ export default function Home() {
                   Get Started
                 </motion.button>
               </Link>
-              <a href="#how-it-works">
+              <a href="#organization-structure">
                 <motion.button
                   className={styles.secondaryBtn}
                   whileHover={{ scale: 1.02 }}
@@ -158,14 +165,14 @@ export default function Home() {
       {/* Features Grid */}
       <FeaturesSection />
 
+      {/* Multi-Tenant SaaS Organization Structure */}
+      <OrgStructure />
+
       {/* How it Works / Lifecycle flow */}
       <HowItWorks />
 
-      {/* Tech Strip */}
-      <TechStrip />
-
-      {/* CTA Section */}
-      <CTA />
+      {/* Get in Touch Contact Section & Hackathon Details */}
+      <ContactSection />
 
       {/* Footer */}
       <Footer />

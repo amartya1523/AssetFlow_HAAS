@@ -1,13 +1,15 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 0.4rem;
 }
 
 .label {
-  font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.84rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: #94a3b8;
+  letter-spacing: 0.01em;
 }
 
 .inputWrap {
@@ -18,47 +20,53 @@
 
 .input {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f1f5f9;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
-  transition: all var(--transition-fast);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   outline: none;
 }
 
 .input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .input::placeholder {
-  color: var(--color-text-muted);
+  color: #334155;
 }
 
 .input.error {
-  border-color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 .input.error:focus {
-  box-shadow: 0 0 0 3px var(--color-danger-bg);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
+/* Password toggle */
 .toggle {
   position: absolute;
   right: 10px;
   background: none;
   border: none;
-  color: var(--color-text-muted);
+  color: #475569;
   display: flex;
   padding: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 .toggle:hover {
-  color: var(--color-text);
+  color: #94a3b8;
 }
 
 .errorMsg {
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
-  color: var(--color-danger);
+  color: #f87171;
   font-weight: 500;
 }

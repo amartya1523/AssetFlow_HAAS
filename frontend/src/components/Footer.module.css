@@ -28,19 +28,13 @@
 }
 
 .logo {
-  background: linear-gradient(135deg, #818cf8 0%, #312e81 100%);
-  color: #ffffff;
-  font-family: 'Sora', 'Outfit', sans-serif;
-  font-weight: 800;
-  font-size: 1.25rem;
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 0.65rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .logoText {
