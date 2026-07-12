@@ -22,6 +22,7 @@ enum UserRole {
   DEPARTMENT_HEAD
   ASSET_MANAGER
   ADMIN
+  SUPER_ADMIN
 }
 
 enum RecordStatus {
@@ -92,9 +93,40 @@ enum NotificationCategory {
   GENERAL
 }
 
+enum PermissionEffect {
+  GRANT
+  REVOKE
+}
+
 // -----------------------------------------------------------------------------
 // User & Organization
 // -----------------------------------------------------------------------------
+
+model Organization {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  status    RecordStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  users               User[]
+  departments         Department[]
+  assetCategories     AssetCategory[]
+  assets              Asset[]
+  allocations         Allocation[]
+  transfers           Transfer[]
+  bookings            Booking[]
+  maintenanceRequests MaintenanceRequest[]
+  auditCycles         AuditCycle[]
+  auditItems          AuditItem[]
+  notifications       Notification[]
+  activityLogs        ActivityLog[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("organizations")
+}
 
 model User {
   id                     String       @id @default(uuid())
@@ -107,50 +139,75 @@ model User {
   status                 RecordStatus @default(ACTIVE)
   passwordResetTokenHash String?
   passwordResetExpiresAt DateTime?
+  organizationId         String?
   departmentId           String?
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
 
-  department           Department?           @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
-  headedDepartment     Department[]          @relation("DepartmentHead")
-  allocations          Allocation[]          @relation("AllocationToUser")
-  transfersFrom        Transfer[]            @relation("TransferFromUser")
-  transfersTo          Transfer[]            @relation("TransferToUser")
-  transfersRequested   Transfer[]            @relation("TransferRequestedBy")
-  bookings             Booking[]             @relation("BookingByUser")
-  maintenanceRaised    MaintenanceRequest[]  @relation("MaintenanceRaisedBy")
-  maintenanceApproved  MaintenanceRequest[]  @relation("MaintenanceApprovedBy")
-  createdAuditCycles   AuditCycle[]          @relation("AuditCycleCreatedBy")
-  auditAssignments     AuditCycleAuditor[]   @relation("AuditCycleAuditorUser")
-  notifications        Notification[]
-  activityLogs         ActivityLog[]
+  organization        Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  department          Department?              @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
+  headedDepartment    Department[]             @relation("DepartmentHead")
+  allocations         Allocation[]             @relation("AllocationToUser")
+  transfersFrom       Transfer[]               @relation("TransferFromUser")
+  transfersTo         Transfer[]               @relation("TransferToUser")
+  transfersRequested  Transfer[]               @relation("TransferRequestedBy")
+  bookings            Booking[]                @relation("BookingByUser")
+  maintenanceRaised   MaintenanceRequest[]     @relation("MaintenanceRaisedBy")
+  maintenanceApproved MaintenanceRequest[]     @relation("MaintenanceApprovedBy")
+  createdAuditCycles  AuditCycle[]             @relation("AuditCycleCreatedBy")
+  auditAssignments    AuditCycleAuditor[]      @relation("AuditCycleAuditorUser")
+  notifications       Notification[]
+  activityLogs        ActivityLog[]
+  permissionOverrides UserPermissionOverride[]
 
   @@index([role])
   @@index([status])
+  @@index([organizationId])
   @@index([departmentId])
   @@index([createdAt])
   @@map("users")
 }
 
+model UserPermissionOverride {
+  id            String           @id @default(uuid())
+  userId        String
+  permissionKey String
+  effect        PermissionEffect
+  grantedById   String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionKey])
+  @@index([permissionKey])
+  @@index([effect])
+  @@map("user_permission_overrides")
+}
+
 model Department {
   id                 String       @id @default(uuid())
+  organizationId     String?
   name               String
-  code               String       @unique
+  code               String
   headId             String?
   parentDepartmentId String?
   status             RecordStatus @default(ACTIVE)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
-  head               User?         @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
-  parentDepartment   Department?   @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
-  childDepartments   Department[]  @relation("DepartmentHierarchy")
-  members            User[]        @relation("DepartmentMembers")
-  assets             Asset[]
-  allocations        Allocation[]  @relation("AllocationToDepartment")
-  scopedAuditCycles  AuditCycle[]  @relation("AuditCycleDepartment")
+  organization      Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  head              User?         @relation("DepartmentHead", fields: [headId], references: [id], onDelete: SetNull)
+  parentDepartment  Department?   @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
+  childDepartments  Department[]  @relation("DepartmentHierarchy")
+  members           User[]        @relation("DepartmentMembers")
+  assets            Asset[]
+  allocations       Allocation[]  @relation("AllocationToDepartment")
+  scopedAuditCycles AuditCycle[]  @relation("AuditCycleDepartment")
 
-  @@unique([name, code])
+  @@unique([organizationId, name])
+  @@unique([organizationId, code])
+  @@index([organizationId])
   @@index([headId])
   @@index([parentDepartmentId])
   @@index([status])
@@ -162,25 +219,30 @@ model Department {
 // -----------------------------------------------------------------------------
 
 model AssetCategory {
-  id               String       @id @default(uuid())
-  name             String       @unique
+  id                String       @id @default(uuid())
+  organizationId    String?
+  name              String
   extraFieldsSchema Json?
-  status           RecordStatus @default(ACTIVE)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  status            RecordStatus @default(ACTIVE)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
-  assets Asset[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  assets       Asset[]
 
+  @@unique([organizationId, name])
+  @@index([organizationId])
   @@index([status])
   @@map("asset_categories")
 }
 
 model Asset {
   id              String      @id @default(uuid())
+  organizationId  String?
   name            String
   categoryId      String
   departmentId    String?
-  assetTag        String      @unique
+  assetTag        String
   serialNumber    String?
   acquisitionDate DateTime?
   acquisitionCost Decimal?    @db.Decimal(12, 2)
@@ -192,6 +254,7 @@ model Asset {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
+  organization        Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   category            AssetCategory        @relation(fields: [categoryId], references: [id])
   department          Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   allocations         Allocation[]
@@ -200,6 +263,8 @@ model Asset {
   maintenanceRequests MaintenanceRequest[]
   auditItems          AuditItem[]
 
+  @@unique([organizationId, assetTag])
+  @@index([organizationId])
   @@index([assetTag])
   @@index([serialNumber])
   @@index([status])
@@ -216,6 +281,7 @@ model Asset {
 
 model Allocation {
   id                      String           @id @default(uuid())
+  organizationId          String?
   assetId                 String
   allocatedToUserId       String?
   allocatedToDepartmentId String?
@@ -227,10 +293,12 @@ model Allocation {
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
 
-  asset                 Asset       @relation(fields: [assetId], references: [id])
-  allocatedToUser       User?       @relation("AllocationToUser", fields: [allocatedToUserId], references: [id], onDelete: SetNull)
-  allocatedToDepartment Department? @relation("AllocationToDepartment", fields: [allocatedToDepartmentId], references: [id], onDelete: SetNull)
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  asset                 Asset         @relation(fields: [assetId], references: [id])
+  allocatedToUser       User?         @relation("AllocationToUser", fields: [allocatedToUserId], references: [id], onDelete: SetNull)
+  allocatedToDepartment Department?   @relation("AllocationToDepartment", fields: [allocatedToDepartmentId], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([assetId])
   @@index([allocatedToUserId])
   @@index([allocatedToDepartmentId])
@@ -241,7 +309,8 @@ model Allocation {
 }
 
 model Transfer {
-  id            String         @id @default(uuid())
+  id             String         @id @default(uuid())
+  organizationId String?
   assetId        String
   fromUserId     String?
   toUserId       String?
@@ -253,11 +322,13 @@ model Transfer {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  asset         Asset  @relation(fields: [assetId], references: [id])
-  fromUser      User?  @relation("TransferFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
-  toUser        User?  @relation("TransferToUser", fields: [toUserId], references: [id], onDelete: SetNull)
-  requestedBy   User   @relation("TransferRequestedBy", fields: [requestedById], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  asset        Asset         @relation(fields: [assetId], references: [id])
+  fromUser     User?         @relation("TransferFromUser", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser       User?         @relation("TransferToUser", fields: [toUserId], references: [id], onDelete: SetNull)
+  requestedBy  User          @relation("TransferRequestedBy", fields: [requestedById], references: [id])
 
+  @@index([organizationId])
   @@index([assetId])
   @@index([fromUserId])
   @@index([toUserId])
@@ -272,18 +343,21 @@ model Transfer {
 // -----------------------------------------------------------------------------
 
 model Booking {
-  id         String        @id @default(uuid())
-  assetId     String
-  bookedById  String
-  startTime   DateTime
-  endTime     DateTime
-  status      BookingStatus @default(UPCOMING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  organizationId String?
+  assetId        String
+  bookedById     String
+  startTime      DateTime
+  endTime        DateTime
+  status         BookingStatus @default(UPCOMING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  asset     Asset @relation(fields: [assetId], references: [id])
-  bookedBy  User  @relation("BookingByUser", fields: [bookedById], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  asset        Asset         @relation(fields: [assetId], references: [id])
+  bookedBy     User          @relation("BookingByUser", fields: [bookedById], references: [id])
 
+  @@index([organizationId])
   @@index([assetId])
   @@index([bookedById])
   @@index([status])
@@ -298,7 +372,8 @@ model Booking {
 // -----------------------------------------------------------------------------
 
 model MaintenanceRequest {
-  id              String              @id @default(uuid())
+  id               String              @id @default(uuid())
+  organizationId   String?
   assetId          String
   raisedById       String
   issueDescription String
@@ -312,10 +387,12 @@ model MaintenanceRequest {
   updatedAt        DateTime            @updatedAt
   resolvedAt       DateTime?
 
-  asset       Asset  @relation(fields: [assetId], references: [id])
-  raisedBy    User   @relation("MaintenanceRaisedBy", fields: [raisedById], references: [id])
-  approvedBy  User?  @relation("MaintenanceApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  asset        Asset         @relation(fields: [assetId], references: [id])
+  raisedBy     User          @relation("MaintenanceRaisedBy", fields: [raisedById], references: [id])
+  approvedBy   User?         @relation("MaintenanceApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([assetId])
   @@index([raisedById])
   @@index([approvedById])
@@ -330,22 +407,25 @@ model MaintenanceRequest {
 // -----------------------------------------------------------------------------
 
 model AuditCycle {
-  id               String           @id @default(uuid())
-  name             String
+  id                String           @id @default(uuid())
+  organizationId    String?
+  name              String
   scopeDepartmentId String?
-  scopeLocation    String?
-  startDate        DateTime
-  endDate          DateTime
-  status           AuditCycleStatus @default(OPEN)
-  createdById      String
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  scopeLocation     String?
+  startDate         DateTime
+  endDate           DateTime
+  status            AuditCycleStatus @default(OPEN)
+  createdById       String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  scopeDepartment Department?       @relation("AuditCycleDepartment", fields: [scopeDepartmentId], references: [id], onDelete: SetNull)
-  createdBy       User              @relation("AuditCycleCreatedBy", fields: [createdById], references: [id])
+  organization    Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  scopeDepartment Department?         @relation("AuditCycleDepartment", fields: [scopeDepartmentId], references: [id], onDelete: SetNull)
+  createdBy       User                @relation("AuditCycleCreatedBy", fields: [createdById], references: [id])
   auditors        AuditCycleAuditor[]
   items           AuditItem[]
 
+  @@index([organizationId])
   @@index([scopeDepartmentId])
   @@index([status])
   @@index([startDate])
@@ -356,10 +436,10 @@ model AuditCycle {
 }
 
 model AuditCycleAuditor {
-  id          String    @id @default(uuid())
+  id           String   @id @default(uuid())
   auditCycleId String
   auditorId    String
-  assignedAt   DateTime  @default(now())
+  assignedAt   DateTime @default(now())
 
   auditCycle AuditCycle @relation(fields: [auditCycleId], references: [id], onDelete: Cascade)
   auditor    User       @relation("AuditCycleAuditorUser", fields: [auditorId], references: [id])
@@ -370,19 +450,22 @@ model AuditCycleAuditor {
 }
 
 model AuditItem {
-  id               String      @id @default(uuid())
+  id               String       @id @default(uuid())
+  organizationId   String?
   auditCycleId     String
   assetId          String
   expectedLocation String?
   result           AuditResult?
   notes            String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  auditCycle AuditCycle @relation(fields: [auditCycleId], references: [id], onDelete: Cascade)
-  asset      Asset      @relation(fields: [assetId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  auditCycle   AuditCycle    @relation(fields: [auditCycleId], references: [id], onDelete: Cascade)
+  asset        Asset         @relation(fields: [assetId], references: [id])
 
   @@unique([auditCycleId, assetId])
+  @@index([organizationId])
   @@index([auditCycleId])
   @@index([assetId])
   @@index([result])
@@ -394,16 +477,19 @@ model AuditItem {
 // -----------------------------------------------------------------------------
 
 model Notification {
-  id        String               @id @default(uuid())
-  userId    String
-  category  NotificationCategory @default(GENERAL)
-  type      String
-  message   String
-  isRead    Boolean              @default(false)
-  createdAt DateTime             @default(now())
+  id             String               @id @default(uuid())
+  organizationId String?
+  userId         String
+  category       NotificationCategory @default(GENERAL)
+  type           String
+  message        String
+  isRead         Boolean              @default(false)
+  createdAt      DateTime             @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([userId])
   @@index([category])
   @@index([type])
@@ -413,16 +499,19 @@ model Notification {
 }
 
 model ActivityLog {
-  id         String   @id @default(uuid())
-  userId     String?
-  action     String
-  entityType String
-  entityId   String?
-  metadata   Json?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(uuid())
+  organizationId String?
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([userId])
   @@index([entityType])
   @@index([entityId])

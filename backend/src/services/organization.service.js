@@ -6,6 +6,7 @@ const { logActivity } = require('./activityLog.service');
 
 const DEPARTMENT_SELECT = {
   id: true,
+  organizationId: true,
   name: true,
   code: true,
   headId: true,
@@ -21,8 +22,9 @@ const DEPARTMENT_SELECT = {
  * List all departments. Single source of truth for the frontend department
  * pickers used across later modules.
  */
-async function listDepartments() {
+async function listDepartments(organizationId) {
   return prisma.department.findMany({
+    where: { organizationId },
     select: DEPARTMENT_SELECT,
     orderBy: [{ name: 'asc' }],
   });
@@ -31,7 +33,7 @@ async function listDepartments() {
 /**
  * Create a department.
  */
-async function createDepartment({ name, code, headId, parentDepartmentId, status }, actorId = null) {
+async function createDepartment(organizationId, { name, code, headId, parentDepartmentId, status }, actorId = null) {
   const trimmedName = name?.trim();
   const trimmedCode = code?.trim();
 
@@ -39,16 +41,17 @@ async function createDepartment({ name, code, headId, parentDepartmentId, status
   if (!trimmedCode) throw ApiError.badRequest('Department code is required');
 
   // Validate referenced rows up front so the error is informative.
-  if (headId && !(await prisma.user.findUnique({ where: { id: headId } }))) {
+  if (headId && !(await prisma.user.findFirst({ where: { id: headId, organizationId } }))) {
     throw ApiError.badRequest('Referenced head user does not exist');
   }
-  if (parentDepartmentId && !(await prisma.department.findUnique({ where: { id: parentDepartmentId } }))) {
+  if (parentDepartmentId && !(await prisma.department.findFirst({ where: { id: parentDepartmentId, organizationId } }))) {
     throw ApiError.badRequest('Referenced parent department does not exist');
   }
 
   try {
     const department = await prisma.department.create({
       data: {
+        organizationId,
         name: trimmedName,
         code: trimmedCode,
         headId: headId || null,
@@ -59,6 +62,7 @@ async function createDepartment({ name, code, headId, parentDepartmentId, status
     });
 
     await logActivity({
+      organizationId,
       userId: actorId,
       action: 'DEPARTMENT_CREATED',
       entityType: 'Department',
@@ -76,11 +80,11 @@ async function createDepartment({ name, code, headId, parentDepartmentId, status
 /**
  * Update a department. All fields optional.
  */
-async function updateDepartment(id, patch, actorId = null) {
-  const existing = await prisma.department.findUnique({ where: { id } });
+async function updateDepartment(organizationId, id, patch, actorId = null) {
+  const existing = await prisma.department.findFirst({ where: { id, organizationId } });
   if (!existing) throw ApiError.notFound('Department not found');
 
-  if (patch.headId && !(await prisma.user.findUnique({ where: { id: patch.headId } }))) {
+  if (patch.headId && !(await prisma.user.findFirst({ where: { id: patch.headId, organizationId } }))) {
     throw ApiError.badRequest('Referenced head user does not exist');
   }
   if (
@@ -89,7 +93,7 @@ async function updateDepartment(id, patch, actorId = null) {
   ) {
     throw ApiError.badRequest('A department cannot be its own parent');
   }
-  if (patch.parentDepartmentId && !(await prisma.department.findUnique({ where: { id: patch.parentDepartmentId } }))) {
+  if (patch.parentDepartmentId && !(await prisma.department.findFirst({ where: { id: patch.parentDepartmentId, organizationId } }))) {
     throw ApiError.badRequest('Referenced parent department does not exist');
   }
 
@@ -107,6 +111,7 @@ async function updateDepartment(id, patch, actorId = null) {
   });
 
   await logActivity({
+    organizationId,
     userId: actorId,
     action: 'DEPARTMENT_UPDATED',
     entityType: 'Department',
@@ -121,8 +126,8 @@ async function updateDepartment(id, patch, actorId = null) {
  * Soft-delete a department (status -> INACTIVE) per the "prefer soft status
  * changes over destructive deletes" database standard.
  */
-async function deleteDepartment(id, actorId = null) {
-  const existing = await prisma.department.findUnique({ where: { id } });
+async function deleteDepartment(organizationId, id, actorId = null) {
+  const existing = await prisma.department.findFirst({ where: { id, organizationId } });
   if (!existing) throw ApiError.notFound('Department not found');
 
   const updated = await prisma.department.update({
@@ -132,6 +137,7 @@ async function deleteDepartment(id, actorId = null) {
   });
 
   await logActivity({
+    organizationId,
     userId: actorId,
     action: 'DEPARTMENT_DEACTIVATED',
     entityType: 'Department',
@@ -146,6 +152,7 @@ async function deleteDepartment(id, actorId = null) {
 
 const CATEGORY_SELECT = {
   id: true,
+  organizationId: true,
   name: true,
   extraFieldsSchema: true,
   status: true,
@@ -153,19 +160,21 @@ const CATEGORY_SELECT = {
   updatedAt: true,
 };
 
-async function listCategories() {
+async function listCategories(organizationId) {
   return prisma.assetCategory.findMany({
+    where: { organizationId },
     select: CATEGORY_SELECT,
     orderBy: [{ name: 'asc' }],
   });
 }
 
-async function createCategory({ name, extraFieldsSchema, status }) {
+async function createCategory(organizationId, { name, extraFieldsSchema, status }) {
   const trimmedName = name?.trim();
   if (!trimmedName) throw ApiError.badRequest('Category name is required');
 
   return prisma.assetCategory.create({
     data: {
+      organizationId,
       name: trimmedName,
       extraFieldsSchema: extraFieldsSchema ?? undefined,
       status: status || 'ACTIVE',
@@ -174,8 +183,8 @@ async function createCategory({ name, extraFieldsSchema, status }) {
   });
 }
 
-async function updateCategory(id, patch) {
-  const existing = await prisma.assetCategory.findUnique({ where: { id } });
+async function updateCategory(organizationId, id, patch) {
+  const existing = await prisma.assetCategory.findFirst({ where: { id, organizationId } });
   if (!existing) throw ApiError.notFound('Category not found');
 
   const data = {};
@@ -190,8 +199,8 @@ async function updateCategory(id, patch) {
   });
 }
 
-async function deleteCategory(id) {
-  const existing = await prisma.assetCategory.findUnique({ where: { id } });
+async function deleteCategory(organizationId, id) {
+  const existing = await prisma.assetCategory.findFirst({ where: { id, organizationId } });
   if (!existing) throw ApiError.notFound('Category not found');
 
   return prisma.assetCategory.update({
@@ -205,6 +214,7 @@ async function deleteCategory(id) {
 
 const EMPLOYEE_SELECT = {
   id: true,
+  organizationId: true,
   name: true,
   email: true,
   phone: true,
@@ -220,9 +230,10 @@ const EMPLOYEE_SELECT = {
  * List employees (users). Supports optional filtering by role and departmentId
  * for later pickers, but the directory endpoint is read-only for admins.
  */
-async function listEmployees({ role, departmentId } = {}) {
-  const where = {};
+async function listEmployees(organizationId, { role, status, departmentId } = {}) {
+  const where = { organizationId };
   if (role) where.role = role;
+  if (status) where.status = status;
   if (departmentId) where.departmentId = departmentId;
 
   return prisma.user.findMany({
@@ -237,9 +248,10 @@ async function listEmployees({ role, departmentId } = {}) {
  * role can change — enforcing the non-self-elevation rule from Task 4 at the
  * system level (the route is admin-only).
  */
-async function updateUserRole(id, role, actorId = null) {
-  const existing = await prisma.user.findUnique({ where: { id } });
+async function updateUserRole(organizationId, id, role, actorId = null) {
+  const existing = await prisma.user.findFirst({ where: { id, organizationId } });
   if (!existing) throw ApiError.notFound('Employee not found');
+  if (role === 'SUPER_ADMIN') throw ApiError.badRequest('SUPER_ADMIN is a platform role');
 
   if (existing.role === role) {
     // No-op; return current state without logging noise.
@@ -253,6 +265,7 @@ async function updateUserRole(id, role, actorId = null) {
   });
 
   await logActivity({
+    organizationId,
     userId: actorId,
     action: 'EMPLOYEE_ROLE_CHANGED',
     entityType: 'User',

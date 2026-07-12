@@ -7,7 +7,7 @@ const validate = require('../middleware/validate');
 
 const router = express.Router();
 
-// POST /api/v1/auth/signup — always EMPLOYEE, client cannot pass role
+// POST /api/v1/auth/signup — creates organization + first ADMIN user
 router.post(
   '/signup',
   [
@@ -16,6 +16,7 @@ router.post(
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters'),
     body('name').trim().notEmpty().withMessage('Name is required'),
+    body('organizationName').trim().notEmpty().withMessage('Organization name is required'),
   ],
   validate,
   authController.signup,

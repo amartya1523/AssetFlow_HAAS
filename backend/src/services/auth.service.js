@@ -16,8 +16,8 @@ function comparePassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
 
-function generateToken(userId, role) {
-  return jwt.sign({ userId, role }, config.jwt.secret, {
+function generateToken(userId, role, organizationId = null) {
+  return jwt.sign({ userId, role, organizationId }, config.jwt.secret, {
     expiresIn: config.jwt.expiresIn,
   });
 }
@@ -26,19 +26,71 @@ function hashResetToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+function makeSlug(value) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+}
+
+async function buildUniqueOrganizationSlug(name, tx = prisma) {
+  const base = makeSlug(name) || `org-${crypto.randomBytes(3).toString('hex')}`;
+  let slug = base;
+  let suffix = 2;
+
+  // Keep this deterministic and readable for tenant URLs/admin views.
+  // eslint-disable-next-line no-await-in-loop
+  while (await tx.organization.findUnique({ where: { slug }, select: { id: true } })) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+}
+
+function serializeUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    status: user.status,
+    avatarUrl: user.avatarUrl,
+    organizationId: user.organizationId,
+    organization: user.organization || null,
+    department: user.department || null,
+    createdAt: user.createdAt,
+  };
+}
+
 // ─── Public methods ─────────────────────────────────────────────────────────
 
 /**
- * Signup — always creates role EMPLOYEE. Never accepts a role from the
- * client (non-self-elevating).
+ * Signup creates a new tenant organization and its first ADMIN user.
  */
-async function signup({ name, email, password, firstName, lastName, phone }) {
+async function signup({
+  name,
+  email,
+  password,
+  firstName,
+  lastName,
+  phone,
+  organizationName,
+  companyName,
+}) {
   const normalizedName = (
     name?.trim() || [firstName, lastName].filter(Boolean).join(' ').trim()
   );
+  const normalizedOrganizationName = (organizationName || companyName || '').trim();
 
   if (!normalizedName) {
     throw ApiError.badRequest('Name is required');
+  }
+  if (!normalizedOrganizationName) {
+    throw ApiError.badRequest('Organization name is required');
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -48,36 +100,83 @@ async function signup({ name, email, password, firstName, lastName, phone }) {
 
   const passwordHash = await hashPassword(password);
 
-  const user = await prisma.user.create({
-    data: {
-      name: normalizedName,
-      email,
-      passwordHash,
-      phone,
-      role: 'EMPLOYEE', // always EMPLOYEE — non-self-elevating
-      status: 'ACTIVE',
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      status: true,
-      createdAt: true,
-    },
+  const { user, organization } = await prisma.$transaction(async (tx) => {
+    const slug = await buildUniqueOrganizationSlug(normalizedOrganizationName, tx);
+    const createdOrganization = await tx.organization.create({
+      data: {
+        name: normalizedOrganizationName,
+        slug,
+        status: 'ACTIVE',
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    const createdUser = await tx.user.create({
+      data: {
+        name: normalizedName,
+        email,
+        passwordHash,
+        phone,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        organizationId: createdOrganization.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        status: true,
+        avatarUrl: true,
+        organizationId: true,
+        createdAt: true,
+        organization: {
+          select: { id: true, name: true, slug: true, status: true },
+        },
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        organizationId: createdOrganization.id,
+        userId: createdUser.id,
+        action: 'ORGANIZATION_SIGNUP',
+        entityType: 'Organization',
+        entityId: createdOrganization.id,
+        metadata: { organizationName: createdOrganization.name },
+      },
+    });
+
+    return { user: createdUser, organization: createdOrganization };
   });
 
-  const token = generateToken(user.id, user.role);
+  const token = generateToken(user.id, user.role, user.organizationId);
 
-  return { user, token };
+  return { user: serializeUser(user), organization, token };
 }
 
 /**
  * Login — validates credentials and returns JWT.
  */
 async function login({ email, password }) {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      organization: {
+        select: { id: true, name: true, slug: true, status: true },
+      },
+      department: {
+        select: { id: true, name: true, code: true },
+      },
+    },
+  });
   if (!user) {
     throw ApiError.unauthorized('Invalid email or password');
   }
@@ -90,19 +189,14 @@ async function login({ email, password }) {
   if (user.status !== 'ACTIVE') {
     throw ApiError.forbidden('Account is disabled');
   }
+  if (user.role !== 'SUPER_ADMIN' && user.organization?.status === 'INACTIVE') {
+    throw ApiError.forbidden('Organization is inactive');
+  }
 
-  const token = generateToken(user.id, user.role);
+  const token = generateToken(user.id, user.role, user.organizationId);
 
   return {
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      avatarUrl: user.avatarUrl,
-    },
+    user: serializeUser(user),
     token,
   };
 }
@@ -121,7 +215,9 @@ async function getMe(userId) {
       role: true,
       avatarUrl: true,
       status: true,
-      department: { select: { id: true, name: true } },
+      organizationId: true,
+      organization: { select: { id: true, name: true, slug: true, status: true } },
+      department: { select: { id: true, name: true, code: true } },
       createdAt: true,
     },
   });
@@ -130,7 +226,7 @@ async function getMe(userId) {
     throw ApiError.notFound('User not found');
   }
 
-  return user;
+  return serializeUser(user);
 }
 
 /**
@@ -200,4 +296,6 @@ module.exports = {
   getMe,
   forgotPassword,
   resetPassword,
+  generateToken,
+  hashPassword,
 };

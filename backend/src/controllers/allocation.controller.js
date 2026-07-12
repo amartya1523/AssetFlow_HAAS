@@ -15,7 +15,7 @@ const createAllocation = asyncHandler(async (req, res) => {
     allocatedToUserId,
     allocatedToDepartmentId,
     expectedReturnDate,
-  });
+  }, req.user);
   return sendCreated(res, allocation);
 });
 
@@ -30,7 +30,7 @@ const listAllocations = asyncHandler(async (req, res) => {
     assetId,
     allocatedToUserId,
     status,
-  });
+  }, req.user);
   return sendSuccess(res, { data: allocations });
 });
 
@@ -39,7 +39,7 @@ const listAllocations = asyncHandler(async (req, res) => {
  * Roles: ASSET_MANAGER, ADMIN, DEPARTMENT_HEAD, EMPLOYEE
  */
 const getAllocationById = asyncHandler(async (req, res) => {
-  const allocation = await allocationService.getAllocationById(req.params.id);
+  const allocation = await allocationService.getAllocationById(req.params.id, req.user);
   return sendSuccess(res, { data: allocation });
 });
 
@@ -52,7 +52,7 @@ const returnAllocation = asyncHandler(async (req, res) => {
   const { conditionNoteOnReturn } = req.body;
   const allocation = await allocationService.returnAllocation(req.params.id, {
     conditionNoteOnReturn,
-  });
+  }, req.user);
   return sendSuccess(res, { data: allocation, message: 'Asset returned successfully' });
 });
 
@@ -71,7 +71,7 @@ const createTransfer = asyncHandler(async (req, res) => {
     toUserId,
     reason,
     requestedById: req.user.userId,
-  });
+  }, req.user);
   return sendCreated(res, transfer);
 });
 
@@ -87,7 +87,7 @@ const listTransfers = asyncHandler(async (req, res) => {
     fromUserId,
     toUserId,
     status,
-  });
+  }, req.user);
   return sendSuccess(res, { data: transfers });
 });
 
@@ -96,7 +96,7 @@ const listTransfers = asyncHandler(async (req, res) => {
  * Roles: ASSET_MANAGER, ADMIN, DEPARTMENT_HEAD
  */
 const getTransferById = asyncHandler(async (req, res) => {
-  const transfer = await allocationService.getTransferById(req.params.id);
+  const transfer = await allocationService.getTransferById(req.params.id, req.user);
   return sendSuccess(res, { data: transfer });
 });
 
@@ -105,7 +105,7 @@ const getTransferById = asyncHandler(async (req, res) => {
  * Roles: ASSET_MANAGER, ADMIN, DEPARTMENT_HEAD
  */
 const approveTransfer = asyncHandler(async (req, res) => {
-  const result = await allocationService.approveTransfer(req.params.id, req.user.userId);
+  const result = await allocationService.approveTransfer(req.params.id, req.user.userId, req.user);
   return sendSuccess(res, {
     data: result,
     message: 'Transfer approved and asset re-allocated',
@@ -117,7 +117,7 @@ const approveTransfer = asyncHandler(async (req, res) => {
  * Roles: ASSET_MANAGER, ADMIN, DEPARTMENT_HEAD
  */
 const rejectTransfer = asyncHandler(async (req, res) => {
-  const transfer = await allocationService.rejectTransfer(req.params.id, req.user.userId);
+  const transfer = await allocationService.rejectTransfer(req.params.id, req.user.userId, req.user);
   return sendSuccess(res, { data: transfer, message: 'Transfer request rejected' });
 });
 

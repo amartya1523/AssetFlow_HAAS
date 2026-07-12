@@ -3,13 +3,14 @@ const { body, param, query } = require('express-validator');
 
 const assetController = require('../controllers/asset.controller');
 const { authenticate } = require('../middleware/auth');
+const { requireTenantScope } = require('../middleware/tenantScope');
 const validate = require('../middleware/validate');
 const { requirePermission } = require('../utils/permissions');
 const { STATUS_VALUES } = require('../services/asset.service');
 
 const router = express.Router();
 
-router.use(authenticate);
+router.use(authenticate, requireTenantScope);
 
 const assetIdParam = [param('id').isUUID().withMessage('id must be a valid UUID')];
 

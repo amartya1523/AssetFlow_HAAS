@@ -5,7 +5,7 @@ const ApiError = require('../utils/ApiError');
 /**
  * Authentication middleware.
  * Verifies the Authorization: Bearer <token> header and attaches
- * `req.user = { userId, role }` for downstream controllers/services.
+ * `req.user = { userId, role, organizationId }` for downstream controllers/services.
  *
  * Usage:
  *   router.get('/me', authenticate, controller.getMe)
@@ -21,7 +21,11 @@ const authenticate = (req, _res, next) => {
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret);
-    req.user = { userId: decoded.userId, role: decoded.role };
+    req.user = {
+      userId: decoded.userId,
+      role: decoded.role,
+      organizationId: decoded.organizationId || null,
+    };
     return next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
@@ -40,6 +44,7 @@ const authenticate = (req, _res, next) => {
  */
 const authorize = (...roles) => (req, _res, next) => {
   if (!req.user) return next(new ApiError(401, 'Authentication required'));
+  if (req.user.role === 'SUPER_ADMIN') return next();
   if (!roles.includes(req.user.role)) {
     return next(new ApiError(403, 'Insufficient permissions'));
   }

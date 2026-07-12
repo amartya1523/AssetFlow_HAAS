@@ -15,6 +15,7 @@ const prisma = require('../config/prisma');
  * Record an activity log entry.
  *
  * @param {object} entry
+ * @param {string} [entry.organizationId] - tenant organization id
  * @param {string} [entry.userId] - the user performing the action (null for system)
  * @param {string} entry.action   - canonical action key, e.g. 'DEPARTMENT_CREATED'
  * @param {string} entry.entityType - e.g. 'Department', 'User'
@@ -22,10 +23,18 @@ const prisma = require('../config/prisma');
  * @param {object} [entry.metadata] - arbitrary JSON context (before/after, etc.)
  * @returns {Promise<void>}
  */
-async function logActivity({ userId = null, action, entityType, entityId = null, metadata = null }) {
+async function logActivity({
+  organizationId = null,
+  userId = null,
+  action,
+  entityType,
+  entityId = null,
+  metadata = null,
+}) {
   try {
     await prisma.activityLog.create({
       data: {
+        organizationId,
         userId,
         action,
         entityType,

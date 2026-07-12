@@ -3,14 +3,16 @@ const { body, query, param } = require('express-validator');
 
 const allocationController = require('../controllers/allocation.controller');
 const { authenticate, authorize } = require('../middleware/auth');
+const { requireTenantScope } = require('../middleware/tenantScope');
 const validate = require('../middleware/validate');
 
 const router = express.Router();
 
+router.use(authenticate, requireTenantScope);
+
 // POST /api/v1/allocations — create a new allocation
 router.post(
   '/',
-  authenticate,
   authorize('ASSET_MANAGER', 'ADMIN'),
   [
     body('assetId').notEmpty().withMessage('assetId is required'),
@@ -34,8 +36,7 @@ router.post(
 // GET /api/v1/allocations — list allocations with optional filters
 router.get(
   '/',
-  authenticate,
-  authorize('ASSET_MANAGER', 'ADMIN', 'DEPARTMENT_HEAD'),
+  authorize('ASSET_MANAGER', 'ADMIN', 'DEPARTMENT_HEAD', 'EMPLOYEE'),
   [
     query('status')
       .optional()
@@ -49,7 +50,6 @@ router.get(
 // GET /api/v1/allocations/:id — get a single allocation
 router.get(
   '/:id',
-  authenticate,
   [param('id').notEmpty().withMessage('id is required')],
   validate,
   allocationController.getAllocationById,
@@ -58,7 +58,6 @@ router.get(
 // PUT /api/v1/allocations/:id/return — return an asset
 router.put(
   '/:id/return',
-  authenticate,
   authorize('ASSET_MANAGER', 'ADMIN', 'DEPARTMENT_HEAD'),
   [
     param('id').notEmpty().withMessage('id is required'),

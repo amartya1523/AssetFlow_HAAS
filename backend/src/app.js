@@ -8,14 +8,17 @@ const errorHandler = require('./middleware/errorHandler');
 
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 
 const departmentRoutes = require('./routes/department.routes');
 const categoryRoutes = require('./routes/category.routes');
 const employeeRoutes = require('./routes/employee.routes');
+const userRoutes = require('./routes/user.routes');
 const assetRoutes = require('./routes/asset.routes');
 
 const allocationRoutes = require('./routes/allocation.routes');
 const transferRoutes = require('./routes/transfer.routes');
+const platformRoutes = require('./routes/platform.routes');
 
 
 /**
@@ -35,12 +38,15 @@ function createApp() {
   // --- Routes ---
   app.use('/api/v1/health', healthRoutes);
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/dashboard', dashboardRoutes);
   app.use('/api/v1/departments', departmentRoutes);
   app.use('/api/v1/categories', categoryRoutes);
   app.use('/api/v1/employees', employeeRoutes);
+  app.use('/api/v1/users', userRoutes);
   app.use('/api/v1/assets', assetRoutes);
   app.use('/api/v1/allocations', allocationRoutes);
   app.use('/api/v1/transfers', transferRoutes);
+  app.use('/api/v1/platform', platformRoutes);
 
   // --- Fallbacks (must be last) ---
   app.use(notFound);

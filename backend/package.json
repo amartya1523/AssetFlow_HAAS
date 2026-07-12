@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "db:backfill-default-org": "node scripts/backfill-default-organization.js",
+    "seed:super-admin": "node scripts/seed-super-admin.js"
   },
   "keywords": [],
   "author": "",
