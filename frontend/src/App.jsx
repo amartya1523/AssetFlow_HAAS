@@ -9,7 +9,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Organization from './pages/Organization';
-import Assets from './pages/Assets';
+import Assets, { AssetDetail } from './pages/Assets';
 import Allocation from './pages/Allocation';
 import Booking from './pages/Booking';
 import Maintenance from './pages/Maintenance';
@@ -77,6 +77,7 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="assets" element={<Assets />} />
+            <Route path="assets/:id" element={<AssetDetail />} />
             <Route path="allocation" element={<Allocation />} />
             <Route path="booking" element={<Booking />} />
             <Route path="maintenance" element={<Maintenance />} />
