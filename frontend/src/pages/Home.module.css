@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
 .wrapper {
-  background-color: #030712;
-  color: #f3f4f6;
+  background-color: #faf6f0; /* Warm off-white beige background */
+  color: #0d2e24; /* Elegant deep pine green color */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -8,35 +10,14 @@
   overflow-x: hidden;
 }
 
-/* Immersive Spotlight Glow Background */
-.pointerSpotlight {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Cyberpunk Grid Overlay Background */
-.gridOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: center;
-  pointer-events: none;
-}
-
-/* Sticky Navigation Header */
+/* Navigation Header */
 .nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  background-color: rgba(3, 7, 18, 0.7);
+  background-color: rgba(250, 246, 240, 0.85);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(13, 46, 36, 0.08);
   height: 4.5rem;
   display: flex;
   align-items: center;
@@ -56,91 +37,85 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  z-index: 10;
 }
 
 .navLogo {
-  background: linear-gradient(135deg, #818cf8 0%, #312e81 100%);
-  color: #ffffff;
-  font-family: 'Sora', 'Outfit', sans-serif;
-  font-weight: 800;
-  font-size: 1.15rem;
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 0.65rem;
+  background: #0d2e24;
+  color: #faf6f0;
+  font-family: 'Lora', serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navLogoText {
-  font-family: 'Sora', 'Outfit', sans-serif;
+  font-family: 'Lora', serif;
   font-size: 1.25rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: #0d2e24;
+  letter-spacing: -0.01em;
 }
 
 .navActions {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
-  z-index: 10;
+  gap: 1.5rem;
 }
 
 .loginLink {
   font-family: 'Inter', sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #556b63;
   text-decoration: none;
-  transition: color 0.25s ease;
+  transition: color 0.2s ease;
 }
 
 .loginLink:hover {
-  color: #818cf8;
+  color: #0d2e24;
 }
 
 .navButton {
-  font-family: 'Sora', 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
-  font-weight: 700;
-  background: #ffffff;
-  color: #030712;
-  border: 1px solid #ffffff;
-  padding: 0.65rem 1.35rem;
-  border-radius: 0.75rem;
+  font-weight: 600;
+  background: #0d2e24;
+  color: #faf6f0;
+  border: 1px solid #0d2e24;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.35rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .navButton:hover {
   background-color: transparent;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.3);
+  color: #0d2e24;
 }
 
-/* Hero Section */
+/* Centered Hero Section overlaying waving 3D background */
 .hero {
   min-height: calc(100vh - 4.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5rem 2rem;
+  padding: 6rem 2rem;
   position: relative;
   z-index: 4;
 }
 
 .heroContainer {
-  max-width: 1200px;
+  max-width: 900px;
   width: 100%;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 5rem;
+  text-align: center;
   position: relative;
   z-index: 10;
 }
@@ -148,309 +123,78 @@
 .heroContent {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  position: relative;
-  text-shadow: 0 4px 15px rgba(3, 7, 18, 0.8);
-}
-
-.heroBadge {
-  background: rgba(99, 102, 241, 0.1);
-  color: #a5b4fc;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  padding: 0.4rem 1rem;
-  border-radius: 9999px;
-  margin-bottom: 1.75rem;
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.1);
+  align-items: center;
+  max-width: 780px;
 }
 
 .heroTitle {
-  font-family: 'Sora', 'Outfit', -apple-system, sans-serif;
-  font-size: 5rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  margin-bottom: 0.75rem;
-}
-
-.heroTagline {
-  font-family: 'Sora', 'Outfit', -apple-system, sans-serif;
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: #94a3b8;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+  font-family: 'Lora', serif;
+  font-size: 3.75rem;
+  font-weight: 400;
+  color: #0d2e24;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   margin-bottom: 1.75rem;
 }
 
-.glowText {
-  background: linear-gradient(135deg, #a5b4fc 20%, #10b981 70%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-  position: relative;
-  text-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+.heroTagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #3f6256;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.25rem;
 }
 
 .heroDescription {
-  font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 1.125rem;
-  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: #556b63;
   line-height: 1.65;
-  margin-bottom: 2.75rem;
-  max-width: 540px;
+  margin-bottom: 3rem;
+  max-width: 580px;
+  font-weight: 400;
 }
 
 .heroActions {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .primaryBtn {
-  font-family: 'Sora', 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border: none;
-  padding: 1.05rem 2.25rem;
-  border-radius: 0.85rem;
+  font-weight: 600;
+  color: #faf6f0;
+  background: #0d2e24;
+  border: 1.5px solid #0d2e24;
+  padding: 0.9rem 2.25rem;
+  border-radius: 0.35rem;
   cursor: pointer;
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(13, 70, 54, 0.12);
+}
+
+.primaryBtn:hover {
+  background-color: #031b14;
+  border-color: #031b14;
 }
 
 .secondaryBtn {
-  font-family: 'Sora', 'Outfit', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1.05rem 2.25rem;
-  border-radius: 0.85rem;
+  font-weight: 600;
+  color: #0d2e24;
+  background: transparent;
+  border: 1.5px solid #0d2e24;
+  padding: 0.9rem 2.25rem;
+  border-radius: 0.35rem;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-  backdrop-filter: blur(8px);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .secondaryBtn:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-/* Floating Mockup Console Widget styling */
-.floatingWidgetContainer {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.glassDashboard {
-  width: 100%;
-  max-width: 440px;
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 2rem;
-  padding: 2rem;
-  backdrop-filter: blur(20px);
-  box-shadow: 
-    0 20px 50px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.widgetHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  padding-bottom: 1.25rem;
-}
-
-.widgetControlDots {
-  display: flex;
-  gap: 6px;
-}
-
-.widgetControlDots span {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-
-.dotRed { background-color: #ef4444; }
-.dotYellow { background-color: #eab308; }
-.dotGreen { background-color: #22c55e; }
-
-.widgetTitle {
-  font-family: 'Sora', 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  letter-spacing: 0.02em;
-}
-
-.telemetryPulseContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: monospace;
-  font-size: 0.65rem;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.05);
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  border: 1px solid rgba(16, 185, 129, 0.15);
-}
-
-.telemetryPulse {
-  width: 5px;
-  height: 5px;
-  background-color: #10b981;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #10b981;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.4); opacity: 0.3; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.widgetList {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.widgetItem {
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  padding: 1.15rem;
-  border-radius: 1.15rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: border-color 0.25s ease, background-color 0.25s ease;
-}
-
-.widgetItem:hover {
-  border-color: rgba(99, 102, 241, 0.25);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.itemInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.itemName {
-  font-family: 'Sora', 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.itemMeta {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-.itemStatus {
-  font-family: monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.35rem;
-}
-
-.statusActive {
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
-
-.statusReserved {
-  background: rgba(16, 185, 129, 0.1);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.statusMaintenance {
-  background: rgba(245, 158, 11, 0.1);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-/* Graphic Overlay */
-.graphContainer {
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  padding: 1.15rem;
-  border-radius: 1.15rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.graphLabel {
-  font-family: monospace;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.35);
-  letter-spacing: 0.05em;
-}
-
-.graphBars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 60px;
-  padding: 0 0.5rem;
-}
-
-.graphBar {
-  width: 14%;
-  height: var(--bar-h, 10%);
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.5) 0%, rgba(99, 102, 241, 0.05) 100%);
-  border-top: 1.5px solid #818cf8;
-  border-radius: 4px 4px 0 0;
-  animation: growBar 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes growBar {
-  from { height: 0; }
-  to { height: var(--bar-h); }
-}
-
-@media (max-width: 1024px) {
-  .heroContainer {
-    grid-template-columns: 1fr;
-    gap: 4rem;
-    text-align: center;
-  }
-  
-  .heroContent {
-    align-items: center;
-  }
-  
-  .heroActions {
-    justify-content: center;
-  }
-  
-  .floatingWidgetContainer {
-    justify-content: center;
-  }
+  background-color: rgba(13, 46, 36, 0.03);
 }
 
 @media (max-width: 768px) {
@@ -459,23 +203,19 @@
   }
   
   .hero {
-    padding: 4rem 1.5rem;
+    padding: 5rem 1.5rem;
   }
   
   .heroTitle {
-    font-size: 3.5rem;
+    font-size: 2.75rem;
   }
   
   .heroTagline {
-    font-size: 1.85rem;
+    font-size: 1rem;
   }
   
   .heroDescription {
-    font-size: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  .glassDashboard {
-    padding: 1.5rem;
+    font-size: 0.95rem;
+    margin-bottom: 2.25rem;
   }
 }

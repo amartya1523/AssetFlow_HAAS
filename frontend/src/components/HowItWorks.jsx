@@ -68,10 +68,14 @@ export default function HowItWorks() {
             <motion.div
               key={step.num}
               className={styles.stepCard}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.08 }}
+              whileHover={{ 
+                y: -6, 
+                boxShadow: '0 12px 30px rgba(13, 46, 36, 0.06)'
+              }}
             >
               <div className={styles.numWrapper}>
                 <span className={styles.num}>{step.num}</span>
