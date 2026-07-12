@@ -53,6 +53,46 @@ Where the wireframes gave stronger product direction than the text, that detail 
 - Standard success shape: `{ "success": true, "data": ... }`
 - Standard error shape: `{ "success": false, "message": "...", "errors": [...] }`
 
+## AI Agent Sync Rules
+
+This task file is meant to be safe for **different AI agents or developers to pick up individual tasks without breaking overall sync**.
+
+Each task should be executed with these rules:
+- do not rename core entities, enums, routes, or modules defined in earlier tasks
+- do not duplicate business logic that belongs to an earlier shared service
+- consume existing APIs and shared utilities instead of rebuilding parallel versions
+- preserve the response shapes, auth model, and RBAC rules already established
+- if a task depends on earlier data models or route contracts, follow those contracts exactly
+- if a later task needs cross-module events, extend the shared service instead of creating local hacks
+
+## Task Dependency Contract
+
+Every task in this file assumes the previous tasks are the source of truth.
+
+- Tasks 1-3 define structure and backend conventions
+- Tasks 4-7 define auth, RBAC, and master data contracts
+- Tasks 9, 11, 13, 15, 17 define core business workflows
+- Tasks 10, 12, 14, 16, 18, 20 must consume the backend contracts created earlier
+- Task 19 is the cross-module sync task that connects notifications, logs, KPIs, and recent activity
+
+If an AI agent starts from a middle task, it must first verify:
+- what routes already exist
+- what enums and schema fields already exist
+- what shared services already exist
+- what UI shell and design tokens already exist
+- what earlier acceptance criteria must remain true
+
+## Per-Task Handoff Expectation
+
+For every task completion, the implementing agent should leave the project in a state where the next agent can continue without guessing.
+
+Minimum handoff standard per task:
+- code follows the module and naming conventions from earlier tasks
+- any new route, service, schema field, or shared component is discoverable in the expected folder
+- README or task notes are updated if setup or contracts changed
+- no hidden hardcoded frontend data when the source is supposed to come from backend master data
+- no breaking changes to existing contracts without updating dependent tasks
+
 ## Recommended Architecture
 
 To score well on architecture, the build should follow a **modular monolith** approach instead of a flat Express app.
