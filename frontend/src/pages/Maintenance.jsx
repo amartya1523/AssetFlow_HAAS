@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Info, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { maintenanceAPI } from '../api/maintenance';
+import { assetAPI } from '../api/assets';
 import useAuthStore from '../context/authStore';
 import Button from '../components/Button';
 import styles from './Maintenance.module.css';
@@ -20,7 +21,6 @@ const PRIORITY_LABELS = {
   LOW: 'Low',
   MEDIUM: 'Medium',
   HIGH: 'High',
-  CRITICAL: 'Critical',
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -30,7 +30,9 @@ export default function MaintenancePage() {
   const isAdminOrManager = ['ADMIN', 'ASSET_MANAGER'].includes(user?.role);
   
   const [requests, setRequests] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [assetsLoading, setAssetsLoading] = useState(true);
   
   // Modals state
   const [showForm, setShowForm] = useState(false);
@@ -86,27 +88,49 @@ export default function MaintenancePage() {
     }
   };
 
+  const loadAssets = async () => {
+    setAssetsLoading(true);
+    try {
+      const res = await assetAPI.list();
+      setAssets(res.data?.data || []);
+    } catch {
+      setAssets([]);
+    } finally {
+      setAssetsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadRequests();
+    loadAssets();
   }, []);
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
   const onCreateSubmit = async (e) => {
     e.preventDefault();
-    if (!form.assetId.trim() || !form.issueDescription.trim()) {
-      setError('Asset ID and Issue Description are required.');
+    if (!form.assetId || !form.issueDescription.trim()) {
+      setError('Asset and Issue Description are required.');
       return;
     }
     setSubmitting(true);
     setError('');
     try {
-      await maintenanceAPI.create(form);
+      await maintenanceAPI.create({
+        assetId: form.assetId,
+        issueDescription: form.issueDescription.trim(),
+        priority: form.priority,
+        photoUrl: form.photoUrl.trim() || undefined,
+      });
       setShowForm(false);
       setForm({ assetId: '', issueDescription: '', priority: 'MEDIUM', photoUrl: '' });
       loadRequests();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit request');
+      setError(
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message ||
+        'Failed to submit request',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +172,11 @@ export default function MaintenancePage() {
       maintenanceAPI.list().then(res => setRequests(res.data.data)).catch(()=>{});
       
     } catch (err) {
-      setError(err.response?.data?.message || `Failed to ${type.toLowerCase()}`);
+      setError(
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message ||
+        `Failed to ${type.toLowerCase()}`,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -251,8 +279,22 @@ export default function MaintenancePage() {
               
               <form onSubmit={onCreateSubmit} className={styles.formGrid}>
                 <div className={styles.formField}>
-                  <label className={styles.label}>Asset ID</label>
-                  <input className={styles.input} value={form.assetId} onChange={e => setForm({...form, assetId: e.target.value})} placeholder="e.g. room-b2-uuid" />
+                  <label className={styles.label}>Asset</label>
+                  <select
+                    className={styles.select}
+                    value={form.assetId}
+                    onChange={(e) => setForm({ ...form, assetId: e.target.value })}
+                    disabled={assetsLoading}
+                  >
+                    <option value="">
+                      {assetsLoading ? 'Loading assets...' : 'Select an asset'}
+                    </option>
+                    {assets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.assetTag} - {asset.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className={styles.formField}>

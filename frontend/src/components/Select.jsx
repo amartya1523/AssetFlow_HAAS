@@ -4,9 +4,9 @@ import styles from './Select.module.css';
  * Native select dropdown styled to match the design system.
  * Accepts standard <select> props plus an optional `label`.
  */
-export default function Select({ label, id, options, error, ...props }) {
+export default function Select({ label, id, options, error, appearance = 'default', ...props }) {
   return (
-    <div className={styles.field}>
+    <div className={`${styles.field} ${appearance === 'surface' ? styles.surfaceField : ''}`}>
       {label && (
         <label htmlFor={id} className={styles.label}>
           {label}
@@ -14,7 +14,7 @@ export default function Select({ label, id, options, error, ...props }) {
       )}
       <select
         id={id}
-        className={`${styles.select} ${error ? styles.error : ''}`}
+        className={`${styles.select} ${appearance === 'surface' ? styles.surfaceSelect : ''} ${error ? styles.error : ''}`}
         {...props}
       >
         {options.map((opt) => {

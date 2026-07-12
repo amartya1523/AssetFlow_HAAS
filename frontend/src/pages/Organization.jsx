@@ -441,6 +441,7 @@ export default function Organization() {
           value={form.name || ''}
           onChange={onChange}
           error={formErrors.name}
+          appearance="surface"
         />
 
         {isDepartment && (
@@ -452,6 +453,7 @@ export default function Organization() {
             value={form.code || ''}
             onChange={onChange}
             error={formErrors.code}
+            appearance="surface"
           />
         )}
 
@@ -461,6 +463,7 @@ export default function Organization() {
           label="Status"
           value={form.status || 'ACTIVE'}
           onChange={onChange}
+          appearance="surface"
           options={[
             { value: 'ACTIVE', label: 'Active' },
             { value: 'INACTIVE', label: 'Inactive' },
@@ -475,6 +478,7 @@ export default function Organization() {
               label="Department Head"
               value={form.headId || ''}
               onChange={onChange}
+              appearance="surface"
               options={[
                 { value: '', label: 'No head assigned' },
                 ...employees.map((emp) => ({
@@ -490,6 +494,7 @@ export default function Organization() {
               label="Parent Department"
               value={form.parentDepartmentId || ''}
               onChange={onChange}
+              appearance="surface"
               options={[
                 { value: '', label: 'No parent department' },
                 ...departments
@@ -600,6 +605,8 @@ export default function Organization() {
         title={modalMode === 'create'
           ? `Add ${activeTab === 'Departments' ? 'Department' : 'Category'}`
           : `Edit ${activeTab === 'Departments' ? 'Department' : 'Category'}`}
+        contentClassName={styles.orgModalCard}
+        bodyClassName={styles.orgModalBody}
       >
         {renderModalContent()}
       </Modal>

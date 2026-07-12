@@ -3,6 +3,14 @@ const ApiError = require('../utils/ApiError');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function requireOrganization(authUser) {
+  const organizationId = authUser?.organizationId;
+  if (!organizationId) {
+    throw ApiError.forbidden('Organization scope is required');
+  }
+  return organizationId;
+}
+
 /**
  * Derive the current status of a booking based on time.
  * If cancelled, it remains CANCELLED.
@@ -28,8 +36,9 @@ function withStatus(booking) {
  * Check for overlapping bookings.
  * Overlap logic: newStart < existingEnd && newEnd > existingStart
  */
-async function checkOverlap(assetId, start, end, excludeBookingId = null) {
+async function checkOverlap(organizationId, assetId, start, end, excludeBookingId = null) {
   const whereClause = {
+    organizationId,
     assetId,
     status: { not: 'CANCELLED' },
     AND: [
@@ -62,7 +71,8 @@ async function checkOverlap(assetId, start, end, excludeBookingId = null) {
  * 2. startTime must be before endTime.
  * 3. Cannot overlap with existing non-cancelled bookings.
  */
-async function createBooking({ assetId, bookedById, startTime, endTime }) {
+async function createBooking({ assetId, bookedById, startTime, endTime }, authUser) {
+  const organizationId = requireOrganization(authUser);
   const start = new Date(startTime);
   const end = new Date(endTime);
 
@@ -71,8 +81,8 @@ async function createBooking({ assetId, bookedById, startTime, endTime }) {
   }
 
   // 1. Fetch asset
-  const asset = await prisma.asset.findUnique({
-    where: { id: assetId }
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, organizationId }
   });
 
   if (!asset) {
@@ -84,7 +94,7 @@ async function createBooking({ assetId, bookedById, startTime, endTime }) {
   }
 
   // 2. Check for overlaps
-  const conflict = await checkOverlap(assetId, start, end);
+  const conflict = await checkOverlap(organizationId, assetId, start, end);
   if (conflict) {
     throw new ApiError(409, 'Time slot overlaps with an existing booking', [
       {
@@ -103,6 +113,7 @@ async function createBooking({ assetId, bookedById, startTime, endTime }) {
   // 3. Create booking
   const booking = await prisma.booking.create({
     data: {
+      organizationId,
       assetId,
       bookedById,
       startTime: start,
@@ -122,8 +133,9 @@ async function createBooking({ assetId, bookedById, startTime, endTime }) {
  * List bookings with optional filters.
  * Enriches each record with derived status.
  */
-async function listBookings({ assetId, bookedById, status } = {}) {
-  const where = {};
+async function listBookings({ assetId, bookedById, status } = {}, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const where = { organizationId };
   if (assetId) where.assetId = assetId;
   if (bookedById) where.bookedById = bookedById;
   
@@ -154,9 +166,10 @@ async function listBookings({ assetId, bookedById, status } = {}) {
 /**
  * Cancel a booking.
  */
-async function cancelBooking(id, userId, userRole) {
-  const booking = await prisma.booking.findUnique({
-    where: { id }
+async function cancelBooking(id, userId, userRole, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const booking = await prisma.booking.findFirst({
+    where: { id, organizationId }
   });
 
   if (!booking) {
@@ -190,7 +203,8 @@ async function cancelBooking(id, userId, userRole) {
 /**
  * Reschedule a booking.
  */
-async function rescheduleBooking(id, { startTime, endTime }, userId, userRole) {
+async function rescheduleBooking(id, { startTime, endTime }, userId, userRole, authUser) {
+  const organizationId = requireOrganization(authUser);
   const start = new Date(startTime);
   const end = new Date(endTime);
 
@@ -198,8 +212,8 @@ async function rescheduleBooking(id, { startTime, endTime }, userId, userRole) {
     throw ApiError.badRequest('startTime must be before endTime');
   }
 
-  const booking = await prisma.booking.findUnique({
-    where: { id }
+  const booking = await prisma.booking.findFirst({
+    where: { id, organizationId }
   });
 
   if (!booking) {
@@ -219,7 +233,7 @@ async function rescheduleBooking(id, { startTime, endTime }, userId, userRole) {
   }
 
   // Check for overlaps excluding the current booking
-  const conflict = await checkOverlap(booking.assetId, start, end, id);
+  const conflict = await checkOverlap(organizationId, booking.assetId, start, end, id);
   if (conflict) {
     throw new ApiError(409, 'Time slot overlaps with an existing booking', [
       {

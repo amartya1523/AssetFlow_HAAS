@@ -12,7 +12,7 @@ import styles from './Modal.module.css';
  *     <form>...</form>
  *   </Modal>
  */
-export default function Modal({ open, onClose, title, children }) {
+export default function Modal({ open, onClose, title, children, contentClassName = '', bodyClassName = '' }) {
   const contentRef = useRef(null);
 
   // Close on Escape
@@ -41,7 +41,7 @@ export default function Modal({ open, onClose, title, children }) {
         >
           <motion.div
             ref={contentRef}
-            className={styles.card}
+            className={`${styles.card} ${contentClassName}`}
             role="dialog"
             aria-modal="true"
             tabIndex={-1}
@@ -57,7 +57,7 @@ export default function Modal({ open, onClose, title, children }) {
                 <X size={18} />
               </button>
             </div>
-            <div className={styles.body}>
+            <div className={`${styles.body} ${bodyClassName}`}>
               {children}
             </div>
           </motion.div>
