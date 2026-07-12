@@ -18,6 +18,8 @@ const allocationRoutes = require('./routes/allocation.routes');
 const transferRoutes = require('./routes/transfer.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const maintenanceRoutes = require('./routes/maintenance.routes');
+const auditCycleRoutes = require('./routes/auditCycle.routes');
+const auditItemRoutes  = require('./routes/auditItem.routes');
 
 
 /**
@@ -45,6 +47,8 @@ function createApp() {
   app.use('/api/v1/transfers', transferRoutes);
   app.use('/api/v1/bookings', bookingRoutes);
   app.use('/api/v1/maintenance', maintenanceRoutes);
+  app.use('/api/v1/audit-cycles', auditCycleRoutes);
+  app.use('/api/v1/audit-items',  auditItemRoutes);
 
   // --- Fallbacks (must be last) ---
   app.use(notFound);
