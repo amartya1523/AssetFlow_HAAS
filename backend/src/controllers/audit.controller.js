@@ -1,6 +1,7 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const auditService = require('../services/audit.service');
+const notificationService = require('../services/notification.service');
 
 // ─── Audit Controller ─────────────────────────────────────────────────────────
 
@@ -66,6 +67,18 @@ const getDiscrepancyReport = asyncHandler(async (req, res) => {
  */
 const closeCycle = asyncHandler(async (req, res) => {
   const cycle = await auditService.closeCycle(req.params.id, req.user.userId);
+
+  // Notify the cycle creator if there are any discrepancies
+  const discrepancyCount = cycle.items?.filter(
+    (i) => i.result === 'MISSING' || i.result === 'DAMAGED',
+  ).length ?? 0;
+
+  notificationService.notifyAuditDiscrepancy({
+    createdById:      cycle.createdById,
+    cycleName:        cycle.name,
+    discrepancyCount,
+  });
+
   return sendSuccess(res, { data: cycle, message: 'Audit cycle closed successfully' });
 });
 

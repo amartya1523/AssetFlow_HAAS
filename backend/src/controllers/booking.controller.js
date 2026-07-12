@@ -1,6 +1,8 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const bookingService = require('../services/booking.service');
+const { logActivity } = require('../services/activityLog.service');
+const notificationService = require('../services/notification.service');
 
 /**
  * POST /api/v1/bookings
@@ -15,6 +17,21 @@ const createBooking = asyncHandler(async (req, res) => {
     startTime,
     endTime,
   });
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'BOOKING_CREATED',
+    entityType: 'Booking',
+    entityId:   booking.id,
+    metadata:   { assetId, startTime, endTime },
+  });
+  notificationService.notifyBookingCreated({
+    toUserId:  req.user.userId,
+    assetName: booking.asset?.name,
+    startTime: booking.startTime,
+    endTime:   booking.endTime,
+  });
+
   return sendCreated(res, booking);
 });
 
@@ -39,10 +56,23 @@ const listBookings = asyncHandler(async (req, res) => {
  */
 const cancelBooking = asyncHandler(async (req, res) => {
   const booking = await bookingService.cancelBooking(
-    req.params.id, 
-    req.user.userId, 
+    req.params.id,
+    req.user.userId,
     req.user.role
   );
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'BOOKING_CANCELLED',
+    entityType: 'Booking',
+    entityId:   booking.id,
+    metadata:   { assetId: booking.assetId },
+  });
+  notificationService.notifyBookingCancelled({
+    toUserId:  booking.bookedById,
+    assetName: booking.asset?.name,
+  });
+
   return sendSuccess(res, { data: booking, message: 'Booking cancelled successfully' });
 });
 
@@ -54,11 +84,26 @@ const cancelBooking = asyncHandler(async (req, res) => {
 const rescheduleBooking = asyncHandler(async (req, res) => {
   const { startTime, endTime } = req.body;
   const booking = await bookingService.rescheduleBooking(
-    req.params.id, 
+    req.params.id,
     { startTime, endTime },
     req.user.userId,
     req.user.role
   );
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'BOOKING_RESCHEDULED',
+    entityType: 'Booking',
+    entityId:   booking.id,
+    metadata:   { assetId: booking.assetId, startTime, endTime },
+  });
+  notificationService.notifyBookingRescheduled({
+    toUserId:  booking.bookedById,
+    assetName: booking.asset?.name,
+    startTime: booking.startTime,
+    endTime:   booking.endTime,
+  });
+
   return sendSuccess(res, { data: booking, message: 'Booking rescheduled successfully' });
 });
 
