@@ -260,6 +260,14 @@ They shape the lifecycle of a real-world company asset.
 2. Sign in with `SUPER_ADMIN` credentials configured in backend environment
 3. Manage the platform from outside tenant space
 
+#### Super Admin Credentials
+
+```env
+SUPER_ADMIN_EMAIL=assets@gmail.com
+SUPER_ADMIN_PASSWORD=admin@123
+SUPER_ADMIN_NAME=Platform Admin
+```
+
 ---
 
 ## Screens at a Glance
