@@ -18,6 +18,7 @@ export default function Sidebar() {
 
   // Filter by role-based visibility
   const items = NAV_ITEMS.filter((item) => {
+    if (role === 'SUPER_ADMIN') return item.roles?.includes('SUPER_ADMIN');
     if (!item.roles) return true;
     return item.roles.includes(role);
   });

@@ -1,27 +1,28 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ShieldCheck } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { authAPI } from '../api/auth';
 import useAuthStore from '../context/authStore';
 import styles from './AuthForm.module.css';
+import superStyles from './SuperAdminLogin.module.css';
 
-export default function Login() {
+export default function SuperAdminLogin({ signedInRole }) {
   const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
-
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const logout = useAuthStore((state) => state.logout);
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-    setErrors((er) => ({ ...er, [name]: undefined }));
+  const onChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
     setApiError('');
   };
 
@@ -34,16 +35,21 @@ export default function Login() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (event) => {
+    event.preventDefault();
     if (!validate()) return;
     setLoading(true);
     setApiError('');
     try {
       const res = await authAPI.login(form);
       const { user, token } = res.data.data;
+      if (user.role !== 'SUPER_ADMIN') {
+        logout();
+        setApiError('This portal only accepts Super Admin credentials.');
+        return;
+      }
       setAuth(user, token);
-      navigate(user.role === 'SUPER_ADMIN' ? '/super-admin' : '/app/dashboard');
+      navigate('/super-admin', { replace: true });
     } catch (err) {
       setApiError(err.response?.data?.message || 'Unable to sign in. Try again.');
     } finally {
@@ -53,25 +59,24 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="AssetFlow - login"
-      footer={
-        <div className={styles.signupPanel}>
-          <div className={styles.divider} />
-          <div className={styles.signupHeader}>New here?</div>
-          <p className={styles.signupCopy}>
-            Sign up creates a new organization with you as Admin
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            fullWidth
-            onClick={() => navigate('/signup')}
-          >
-            Create Account
+      title="Super Admin Portal"
+      subtitle="Platform-level access for managing all organizations"
+      footer={<Link to="/login">Go to tenant login</Link>}
+    >
+      <div className={superStyles.badge}>
+        <ShieldCheck size={17} />
+        <span>Use the credentials configured for SUPER_ADMIN in the backend environment.</span>
+      </div>
+
+      {signedInRole && signedInRole !== 'SUPER_ADMIN' && (
+        <div className={superStyles.warning}>
+          You are signed in as {signedInRole.replace(/_/g, ' ')}. Sign out before using Super Admin access.
+          <Button type="button" variant="secondary" fullWidth onClick={logout}>
+            Sign out current user
           </Button>
         </div>
-      }
-    >
+      )}
+
       <form onSubmit={onSubmit} className={styles.form} noValidate>
         <AnimatePresence>
           {apiError && (
@@ -88,36 +93,30 @@ export default function Login() {
         </AnimatePresence>
 
         <Input
-          id="email"
+          id="superAdminEmail"
           name="email"
-          label="Email"
+          label="Super Admin email"
           type="email"
-          placeholder="name@company.com"
+          placeholder="platform-admin@assetflow.com"
           value={form.email}
           onChange={onChange}
           error={errors.email}
           autoComplete="email"
         />
         <Input
-          id="password"
+          id="superAdminPassword"
           name="password"
           label="Password"
           type="password"
-          placeholder="••••••••"
+          placeholder="Enter platform password"
           value={form.password}
           onChange={onChange}
           error={errors.password}
           autoComplete="current-password"
         />
 
-        <div className={styles.rowBetween}>
-          <Link to="/forgot-password" className={styles.link}>
-            Forgot password?
-          </Link>
-        </div>
-
         <Button type="submit" loading={loading} fullWidth>
-          Sign In
+          Open Super Admin Portal
         </Button>
       </form>
     </AuthLayout>

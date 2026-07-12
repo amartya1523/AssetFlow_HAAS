@@ -1,6 +1,8 @@
 import {
   LayoutDashboard,
   Building2,
+  ShieldCheck,
+  Users,
   Package,
   ArrowLeftRight,
   CalendarClock,
@@ -18,6 +20,8 @@ import {
 export const NAV_ITEMS = [
   { label: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },
   { label: 'Organization Setup', path: '/app/organization', icon: Building2, roles: ['ADMIN'] },
+  { label: 'User Management', path: '/app/users', icon: Users, roles: ['ADMIN'] },
+  { label: 'Super Admin', path: '/super-admin', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },
   { label: 'Assets', path: '/app/assets', icon: Package },
   { label: 'Allocation & Transfer', path: '/app/allocation', icon: ArrowLeftRight },
   { label: 'Resource Booking', path: '/app/booking', icon: CalendarClock },

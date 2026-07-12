@@ -4,13 +4,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowLeftRight,
   CalendarDays,
+  CheckCircle2,
   Clock3,
   Eye,
   ImageIcon,
   Pencil,
   Plus,
   Search,
+  SendHorizonal,
   SlidersHorizontal,
   UploadCloud,
 } from 'lucide-react';
@@ -21,6 +24,8 @@ import Select from '../components/Select';
 import StatusPill from '../components/StatusPill';
 import { assetAPI } from '../api/assets';
 import { orgAPI } from '../api/organization';
+import { allocationAPI } from '../api/allocation';
+import useAuthStore from '../context/authStore';
 import styles from './Assets.module.css';
 
 const ASSET_STATUSES = [
@@ -678,39 +683,76 @@ export default function Assets() {
 export function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const currentUser = useAuthStore((s) => s.user);
   const [asset, setAsset] = useState(null);
   const [timeline, setTimeline] = useState([]);
+  const [activeAllocation, setActiveAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState('');
+
+  // Transfer form state
+  const [transferReason, setTransferReason] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [transferSuccess, setTransferSuccess] = useState(false);
+  const [transferError, setTransferError] = useState('');
+
+  const loadData = useCallback(async (isCancelled) => {
+    try {
+      const res = await assetAPI.history(id);
+      if (!isCancelled()) {
+        const data = res.data.data;
+        setAsset(data.asset);
+        const activeAlloc = data.allocations?.find((a) => a.status === 'ACTIVE');
+        setActiveAllocation(activeAlloc || null);
+        setTimeline(
+          [...(data.timeline || [])].sort(
+            (a, b) => new Date(b.occurredAt) - new Date(a.occurredAt),
+          ),
+        );
+      }
+    } catch (err) {
+      if (!isCancelled()) {
+        setApiError(err.response?.data?.message || 'Failed to load asset detail');
+      }
+    } finally {
+      if (!isCancelled()) setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setApiError('');
+    loadData(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
+  }, [loadData]);
 
-    (async () => {
-      try {
-        const res = await assetAPI.history(id);
-        if (!cancelled) {
-          const data = res.data.data;
-          setAsset(data.asset);
-          setTimeline(
-            [...(data.timeline || [])].sort(
-              (a, b) => new Date(b.occurredAt) - new Date(a.occurredAt),
-            ),
-          );
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setApiError(err.response?.data?.message || 'Failed to load asset detail');
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [id]);
+  const onTransferSubmit = async (e) => {
+    e.preventDefault();
+    if (!transferReason.trim() || transferReason.trim().length < 5) {
+      setTransferError('Reason must be at least 5 characters.');
+      return;
+    }
+    setTransferLoading(true);
+    setTransferError('');
+    try {
+      await allocationAPI.requestTransfer({
+        assetId: asset.id,
+        fromUserId: activeAllocation?.allocatedToUser?.id,
+        toUserId: currentUser?.id,
+        reason: transferReason.trim(),
+      });
+      setTransferSuccess(true);
+      setTransferReason('');
+      loadData(() => false);
+    } catch (err) {
+      setTransferError(err.response?.data?.message || 'Failed to submit transfer request.');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -806,6 +848,49 @@ export function AssetDetail() {
               <strong>{formatDate(asset.createdAt)}</strong>
             </div>
           </div>
+          {asset.status === 'ALLOCATED' && activeAllocation && activeAllocation.allocatedToUser?.id !== currentUser?.id && (
+            <div className={styles.transferSection}>
+              {!transferSuccess ? (
+                <form onSubmit={onTransferSubmit} className={styles.transferForm}>
+                  <h4 className={styles.transferTitle}>
+                    <ArrowLeftRight size={15} /> Request Asset Transfer
+                  </h4>
+                  <p className={styles.transferDesc}>
+                    This asset is currently allocated to <strong>{activeAllocation.allocatedToUser.name}</strong>.
+                    Submit a transfer request to the admin to acquire it.
+                  </p>
+                  <div className={styles.transferFormField}>
+                    <label className={styles.transferLabel} htmlFor="tf-reason">Reason</label>
+                    <textarea
+                      id="tf-reason"
+                      name="reason"
+                      className={styles.transferTextarea}
+                      placeholder="Explain why this transfer is needed (min 5 chars)"
+                      rows={3}
+                      value={transferReason}
+                      onChange={(e) => {
+                        setTransferReason(e.target.value);
+                        setTransferError('');
+                      }}
+                      required
+                    />
+                  </div>
+                  {transferError && (
+                    <p className={styles.transferInlineError}>{transferError}</p>
+                  )}
+                  <Button type="submit" loading={transferLoading}>
+                    <SendHorizonal size={15} />
+                    Send Transfer Request
+                  </Button>
+                </form>
+              ) : (
+                <div className={styles.transferSuccessBanner}>
+                  <CheckCircle2 size={18} />
+                  <span>Transfer request submitted successfully. Awaiting approval.</span>
+                </div>
+              )}
+            </div>
+          )}
         </motion.section>
 
         <motion.section

@@ -19,6 +19,20 @@
   margin-bottom: var(--space-xl);
 }
 
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 14px;
+  margin-bottom: var(--space-lg);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
 .kpiCard {
   background: var(--color-surface);
   border: 1px solid var(--color-border-light);
@@ -69,4 +83,56 @@
   padding: var(--space-2xl) var(--space-lg);
   color: var(--color-text-muted);
   font-size: 0.92rem;
+}
+
+.activityList {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.activityItem {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+.activityItem strong {
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.activityItem p {
+  margin: 2px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.84rem;
+}
+
+.activityItem span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .activityItem {
+    grid-template-columns: 12px 1fr;
+  }
+
+  .activityItem span {
+    grid-column: 2;
+  }
 }

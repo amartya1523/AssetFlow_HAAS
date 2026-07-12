@@ -14,6 +14,7 @@ export default function Signup() {
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [form, setForm] = useState({
+    organizationName: '',
     name: '',
     email: '',
     password: '',
@@ -31,6 +32,7 @@ export default function Signup() {
 
   const validate = () => {
     const next = {};
+    if (!form.organizationName.trim()) next.organizationName = 'Organization name is required';
     if (!form.name.trim()) next.name = 'Full name is required';
     if (!form.email) next.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Enter a valid email';
@@ -69,7 +71,7 @@ export default function Signup() {
     >
       <div className={styles.infoNote}>
         <CheckCircle2 size={15} />
-        <span>All new accounts are created as Employee.</span>
+        <span>Signup creates your organization and makes you its Admin.</span>
       </div>
 
       <form onSubmit={onSubmit} className={styles.form} noValidate>
@@ -86,6 +88,17 @@ export default function Signup() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <Input
+          id="organizationName"
+          name="organizationName"
+          label="Organization name"
+          placeholder="Acme Operations"
+          value={form.organizationName}
+          onChange={onChange}
+          error={errors.organizationName}
+          autoComplete="organization"
+        />
 
         <Input
           id="name"
