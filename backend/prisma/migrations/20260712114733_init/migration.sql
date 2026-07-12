@@ -1,8 +1,5 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('EMPLOYEE', 'DEPARTMENT_HEAD', 'ASSET_MANAGER', 'ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('EMPLOYEE', 'DEPARTMENT_HEAD', 'ASSET_MANAGER', 'ADMIN', 'SUPER_ADMIN');
 
 -- CreateEnum
 CREATE TYPE "RecordStatus" AS ENUM ('ACTIVE', 'INACTIVE');
@@ -34,6 +31,21 @@ CREATE TYPE "AuditResult" AS ENUM ('VERIFIED', 'MISSING', 'DAMAGED');
 -- CreateEnum
 CREATE TYPE "NotificationCategory" AS ENUM ('ALERT', 'APPROVAL', 'BOOKING', 'GENERAL');
 
+-- CreateEnum
+CREATE TYPE "PermissionEffect" AS ENUM ('GRANT', 'REVOKE');
+
+-- CreateTable
+CREATE TABLE "organizations" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "status" "RecordStatus" NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "organizations_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -46,6 +58,7 @@ CREATE TABLE "users" (
     "status" "RecordStatus" NOT NULL DEFAULT 'ACTIVE',
     "passwordResetTokenHash" TEXT,
     "passwordResetExpiresAt" TIMESTAMP(3),
+    "organizationId" TEXT,
     "departmentId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -54,8 +67,22 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
+CREATE TABLE "user_permission_overrides" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "permissionKey" TEXT NOT NULL,
+    "effect" "PermissionEffect" NOT NULL,
+    "grantedById" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "user_permission_overrides_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "departments" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "headId" TEXT,
@@ -70,6 +97,7 @@ CREATE TABLE "departments" (
 -- CreateTable
 CREATE TABLE "asset_categories" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "name" TEXT NOT NULL,
     "extraFieldsSchema" JSONB,
     "status" "RecordStatus" NOT NULL DEFAULT 'ACTIVE',
@@ -82,6 +110,7 @@ CREATE TABLE "asset_categories" (
 -- CreateTable
 CREATE TABLE "assets" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "name" TEXT NOT NULL,
     "categoryId" TEXT NOT NULL,
     "departmentId" TEXT,
@@ -103,6 +132,7 @@ CREATE TABLE "assets" (
 -- CreateTable
 CREATE TABLE "allocations" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "assetId" TEXT NOT NULL,
     "allocatedToUserId" TEXT,
     "allocatedToDepartmentId" TEXT,
@@ -120,6 +150,7 @@ CREATE TABLE "allocations" (
 -- CreateTable
 CREATE TABLE "transfers" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "assetId" TEXT NOT NULL,
     "fromUserId" TEXT,
     "toUserId" TEXT,
@@ -137,6 +168,7 @@ CREATE TABLE "transfers" (
 -- CreateTable
 CREATE TABLE "bookings" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "assetId" TEXT NOT NULL,
     "bookedById" TEXT NOT NULL,
     "startTime" TIMESTAMP(3) NOT NULL,
@@ -151,6 +183,7 @@ CREATE TABLE "bookings" (
 -- CreateTable
 CREATE TABLE "maintenance_requests" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "assetId" TEXT NOT NULL,
     "raisedById" TEXT NOT NULL,
     "issueDescription" TEXT NOT NULL,
@@ -170,6 +203,7 @@ CREATE TABLE "maintenance_requests" (
 -- CreateTable
 CREATE TABLE "audit_cycles" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "name" TEXT NOT NULL,
     "scopeDepartmentId" TEXT,
     "scopeLocation" TEXT,
@@ -196,6 +230,7 @@ CREATE TABLE "audit_cycle_auditors" (
 -- CreateTable
 CREATE TABLE "audit_items" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "auditCycleId" TEXT NOT NULL,
     "assetId" TEXT NOT NULL,
     "expectedLocation" TEXT,
@@ -210,6 +245,7 @@ CREATE TABLE "audit_items" (
 -- CreateTable
 CREATE TABLE "notifications" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "userId" TEXT NOT NULL,
     "category" "NotificationCategory" NOT NULL DEFAULT 'GENERAL',
     "type" TEXT NOT NULL,
@@ -223,6 +259,7 @@ CREATE TABLE "notifications" (
 -- CreateTable
 CREATE TABLE "activity_logs" (
     "id" TEXT NOT NULL,
+    "organizationId" TEXT,
     "userId" TEXT,
     "action" TEXT NOT NULL,
     "entityType" TEXT NOT NULL,
@@ -234,6 +271,15 @@ CREATE TABLE "activity_logs" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "organizations_slug_key" ON "organizations"("slug");
+
+-- CreateIndex
+CREATE INDEX "organizations_status_idx" ON "organizations"("status");
+
+-- CreateIndex
+CREATE INDEX "organizations_createdAt_idx" ON "organizations"("createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
@@ -243,13 +289,25 @@ CREATE INDEX "users_role_idx" ON "users"("role");
 CREATE INDEX "users_status_idx" ON "users"("status");
 
 -- CreateIndex
+CREATE INDEX "users_organizationId_idx" ON "users"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "users_departmentId_idx" ON "users"("departmentId");
 
 -- CreateIndex
 CREATE INDEX "users_createdAt_idx" ON "users"("createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "departments_code_key" ON "departments"("code");
+CREATE INDEX "user_permission_overrides_permissionKey_idx" ON "user_permission_overrides"("permissionKey");
+
+-- CreateIndex
+CREATE INDEX "user_permission_overrides_effect_idx" ON "user_permission_overrides"("effect");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_permission_overrides_userId_permissionKey_key" ON "user_permission_overrides"("userId", "permissionKey");
+
+-- CreateIndex
+CREATE INDEX "departments_organizationId_idx" ON "departments"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "departments_headId_idx" ON "departments"("headId");
@@ -261,16 +319,22 @@ CREATE INDEX "departments_parentDepartmentId_idx" ON "departments"("parentDepart
 CREATE INDEX "departments_status_idx" ON "departments"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "departments_name_code_key" ON "departments"("name", "code");
+CREATE UNIQUE INDEX "departments_organizationId_name_key" ON "departments"("organizationId", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "asset_categories_name_key" ON "asset_categories"("name");
+CREATE UNIQUE INDEX "departments_organizationId_code_key" ON "departments"("organizationId", "code");
+
+-- CreateIndex
+CREATE INDEX "asset_categories_organizationId_idx" ON "asset_categories"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "asset_categories_status_idx" ON "asset_categories"("status");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "assets_assetTag_key" ON "assets"("assetTag");
+CREATE UNIQUE INDEX "asset_categories_organizationId_name_key" ON "asset_categories"("organizationId", "name");
+
+-- CreateIndex
+CREATE INDEX "assets_organizationId_idx" ON "assets"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "assets_assetTag_idx" ON "assets"("assetTag");
@@ -294,6 +358,12 @@ CREATE INDEX "assets_location_idx" ON "assets"("location");
 CREATE INDEX "assets_createdAt_idx" ON "assets"("createdAt");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "assets_organizationId_assetTag_key" ON "assets"("organizationId", "assetTag");
+
+-- CreateIndex
+CREATE INDEX "allocations_organizationId_idx" ON "allocations"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "allocations_assetId_idx" ON "allocations"("assetId");
 
 -- CreateIndex
@@ -310,6 +380,9 @@ CREATE INDEX "allocations_expectedReturnDate_idx" ON "allocations"("expectedRetu
 
 -- CreateIndex
 CREATE INDEX "allocations_createdAt_idx" ON "allocations"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "transfers_organizationId_idx" ON "transfers"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "transfers_assetId_idx" ON "transfers"("assetId");
@@ -330,6 +403,9 @@ CREATE INDEX "transfers_status_idx" ON "transfers"("status");
 CREATE INDEX "transfers_requestedAt_idx" ON "transfers"("requestedAt");
 
 -- CreateIndex
+CREATE INDEX "bookings_organizationId_idx" ON "bookings"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "bookings_assetId_idx" ON "bookings"("assetId");
 
 -- CreateIndex
@@ -348,6 +424,9 @@ CREATE INDEX "bookings_endTime_idx" ON "bookings"("endTime");
 CREATE INDEX "bookings_createdAt_idx" ON "bookings"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "maintenance_requests_organizationId_idx" ON "maintenance_requests"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "maintenance_requests_assetId_idx" ON "maintenance_requests"("assetId");
 
 -- CreateIndex
@@ -364,6 +443,9 @@ CREATE INDEX "maintenance_requests_priority_idx" ON "maintenance_requests"("prio
 
 -- CreateIndex
 CREATE INDEX "maintenance_requests_createdAt_idx" ON "maintenance_requests"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "audit_cycles_organizationId_idx" ON "audit_cycles"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "audit_cycles_scopeDepartmentId_idx" ON "audit_cycles"("scopeDepartmentId");
@@ -390,6 +472,9 @@ CREATE INDEX "audit_cycle_auditors_auditorId_idx" ON "audit_cycle_auditors"("aud
 CREATE UNIQUE INDEX "audit_cycle_auditors_auditCycleId_auditorId_key" ON "audit_cycle_auditors"("auditCycleId", "auditorId");
 
 -- CreateIndex
+CREATE INDEX "audit_items_organizationId_idx" ON "audit_items"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "audit_items_auditCycleId_idx" ON "audit_items"("auditCycleId");
 
 -- CreateIndex
@@ -400,6 +485,9 @@ CREATE INDEX "audit_items_result_idx" ON "audit_items"("result");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "audit_items_auditCycleId_assetId_key" ON "audit_items"("auditCycleId", "assetId");
+
+-- CreateIndex
+CREATE INDEX "notifications_organizationId_idx" ON "notifications"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "notifications_userId_idx" ON "notifications"("userId");
@@ -417,6 +505,9 @@ CREATE INDEX "notifications_isRead_idx" ON "notifications"("isRead");
 CREATE INDEX "notifications_createdAt_idx" ON "notifications"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "activity_logs_organizationId_idx" ON "activity_logs"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "activity_logs_userId_idx" ON "activity_logs"("userId");
 
 -- CreateIndex
@@ -432,7 +523,16 @@ CREATE INDEX "activity_logs_action_idx" ON "activity_logs"("action");
 CREATE INDEX "activity_logs_createdAt_idx" ON "activity_logs"("createdAt");
 
 -- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_permission_overrides" ADD CONSTRAINT "user_permission_overrides_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "departments" ADD CONSTRAINT "departments_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "departments" ADD CONSTRAINT "departments_headId_fkey" FOREIGN KEY ("headId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -441,10 +541,19 @@ ALTER TABLE "departments" ADD CONSTRAINT "departments_headId_fkey" FOREIGN KEY (
 ALTER TABLE "departments" ADD CONSTRAINT "departments_parentDepartmentId_fkey" FOREIGN KEY ("parentDepartmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "asset_categories" ADD CONSTRAINT "asset_categories_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "assets" ADD CONSTRAINT "assets_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "assets" ADD CONSTRAINT "assets_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "asset_categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "assets" ADD CONSTRAINT "assets_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "allocations" ADD CONSTRAINT "allocations_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "allocations" ADD CONSTRAINT "allocations_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -454,6 +563,9 @@ ALTER TABLE "allocations" ADD CONSTRAINT "allocations_allocatedToUserId_fkey" FO
 
 -- AddForeignKey
 ALTER TABLE "allocations" ADD CONSTRAINT "allocations_allocatedToDepartmentId_fkey" FOREIGN KEY ("allocatedToDepartmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "transfers" ADD CONSTRAINT "transfers_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -468,10 +580,16 @@ ALTER TABLE "transfers" ADD CONSTRAINT "transfers_toUserId_fkey" FOREIGN KEY ("t
 ALTER TABLE "transfers" ADD CONSTRAINT "transfers_requestedById_fkey" FOREIGN KEY ("requestedById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "bookings" ADD CONSTRAINT "bookings_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "bookings" ADD CONSTRAINT "bookings_bookedById_fkey" FOREIGN KEY ("bookedById") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -481,6 +599,9 @@ ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_raisedBy
 
 -- AddForeignKey
 ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_cycles" ADD CONSTRAINT "audit_cycles_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_cycles" ADD CONSTRAINT "audit_cycles_scopeDepartmentId_fkey" FOREIGN KEY ("scopeDepartmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -495,13 +616,22 @@ ALTER TABLE "audit_cycle_auditors" ADD CONSTRAINT "audit_cycle_auditors_auditCyc
 ALTER TABLE "audit_cycle_auditors" ADD CONSTRAINT "audit_cycle_auditors_auditorId_fkey" FOREIGN KEY ("auditorId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "audit_items" ADD CONSTRAINT "audit_items_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "audit_items" ADD CONSTRAINT "audit_items_auditCycleId_fkey" FOREIGN KEY ("auditCycleId") REFERENCES "audit_cycles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_items" ADD CONSTRAINT "audit_items_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organizations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
