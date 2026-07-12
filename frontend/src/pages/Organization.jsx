@@ -118,19 +118,28 @@ export default function Organization() {
 
   // ─── Modal open helpers ────────────────────────────────────────────────
 
-  const openCreateModal = () => {
+  const ensureDepartmentPickerData = async () => {
+    const requests = [];
+    if (employees.length === 0) requests.push(fetchEmployees());
+    if (departments.length === 0) requests.push(fetchDepartments());
+    if (requests.length > 0) await Promise.all(requests);
+  };
+
+  const openCreateModal = async () => {
     setModalMode('create');
     setEditingItem(null);
     setForm({});
     setFormErrors({});
+    if (activeTab === 'Departments') await ensureDepartmentPickerData();
     setModalOpen(true);
   };
 
-  const openEditModal = (item, tabKey) => {
+  const openEditModal = async (item, tabKey) => {
     setModalMode('edit');
     setEditingItem(item);
     if (tabKey === 'department') {
       setForm({ name: item.name, code: item.code, status: item.status, headId: item.headId || '', parentDepartmentId: item.parentDepartmentId || '' });
+      await ensureDepartmentPickerData();
     } else {
       setForm({ name: item.name, status: item.status });
     }
@@ -457,6 +466,39 @@ export default function Organization() {
             { value: 'INACTIVE', label: 'Inactive' },
           ]}
         />
+
+        {isDepartment && (
+          <>
+            <Select
+              id="modal-head"
+              name="headId"
+              label="Department Head"
+              value={form.headId || ''}
+              onChange={onChange}
+              options={[
+                { value: '', label: 'No head assigned' },
+                ...employees.map((emp) => ({
+                  value: emp.id,
+                  label: `${emp.name} (${emp.role.replace(/_/g, ' ')})`,
+                })),
+              ]}
+            />
+
+            <Select
+              id="modal-parent"
+              name="parentDepartmentId"
+              label="Parent Department"
+              value={form.parentDepartmentId || ''}
+              onChange={onChange}
+              options={[
+                { value: '', label: 'No parent department' },
+                ...departments
+                  .filter((dept) => dept.id !== editingItem?.id)
+                  .map((dept) => ({ value: dept.id, label: `${dept.name} (${dept.code})` })),
+              ]}
+            />
+          </>
+        )}
 
         <div className={styles.formActions}>
           <Button type="button" variant="secondary" onClick={closeModal}>
