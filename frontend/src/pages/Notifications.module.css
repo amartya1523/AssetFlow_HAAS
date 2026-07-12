@@ -1,0 +1,293 @@
+/* ======================================================================
+   Notifications Center — CSS Modules
+   ====================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.92rem;
+  margin-top: var(--space-xs);
+}
+
+/* ── Tabs selector ────────────────────────────────────────────────────── */
+.tabsContainer {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2px;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  position: relative;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+  outline: none;
+}
+
+.tabBtn:hover {
+  color: var(--color-text);
+}
+
+.tabActive {
+  color: var(--color-primary);
+}
+
+.activeIndicator {
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.tabText {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Notifications Card ───────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.notificationList {
+  display: flex;
+  flex-direction: column;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationItem:hover {
+  background: var(--color-surface-alt);
+}
+
+.unread {
+  background: var(--color-primary-light);
+}
+
+.unread:hover {
+  background: #e0e7ff;
+}
+
+/* Icon config */
+.iconContainer {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon_red    { background: var(--color-danger-bg);     color: var(--color-danger); }
+.icon_blue   { background: var(--color-info-bg);       color: var(--color-info); }
+.icon_purple { background: var(--color-primary-light); color: var(--color-primary); }
+.icon_teal   { background: #f0fdfa; color: #0f766e; }
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.messageRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.message {
+  font-size: 0.92rem;
+  color: var(--color-text);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.unreadBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.categoryTag {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tag_red    { color: var(--color-danger); }
+.tag_blue   { color: var(--color-info); }
+.tag_purple { color: var(--color-primary); }
+.tag_teal   { color: #0f766e; }
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.arrow {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ── States ───────────────────────────────────────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.emptyState svg {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  margin-bottom: var(--space-md);
+}
+
+.emptyText {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.emptySubText {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-lg);
+  gap: var(--space-md);
+  color: var(--color-danger);
+}
+
+/* ── Skeletons ────────────────────────────────────────────────────────── */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  gap: var(--space-lg);
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.skeletonCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.skeletonTextContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.skeletonLineShort,
+.skeletonLineLong {
+  height: 12px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--color-border-light) 25%, var(--color-border) 50%, var(--color-border-light) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeletonLineShort {
+  width: 30%;
+}
+
+.skeletonLineLong {
+  width: 70%;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
