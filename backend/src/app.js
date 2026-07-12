@@ -8,6 +8,9 @@ const errorHandler = require('./middleware/errorHandler');
 
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
+const departmentRoutes = require('./routes/department.routes');
+const categoryRoutes = require('./routes/category.routes');
+const employeeRoutes = require('./routes/employee.routes');
 
 /**
  * Express app factory. Separating app creation from server.listen
@@ -26,6 +29,9 @@ function createApp() {
   // --- Routes ---
   app.use('/api/v1/health', healthRoutes);
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/departments', departmentRoutes);
+  app.use('/api/v1/categories', categoryRoutes);
+  app.use('/api/v1/employees', employeeRoutes);
 
   // --- Fallbacks (must be last) ---
   app.use(notFound);
