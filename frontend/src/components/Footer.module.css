@@ -1,7 +1,7 @@
 .footer {
-  background-color: #faf6f0;
+  background-color: #030712;
   padding: 5rem 2rem 3rem 2rem;
-  border-top: 1px solid rgba(13, 46, 36, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   justify-content: center;
   position: relative;
@@ -28,24 +28,26 @@
 }
 
 .logo {
-  background: #0d2e24;
-  color: #faf6f0;
-  font-family: 'Lora', serif;
-  font-weight: 700;
+  background: linear-gradient(135deg, #818cf8 0%, #312e81 100%);
+  color: #ffffff;
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-weight: 800;
   font-size: 1.25rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.35rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.65rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .logoText {
-  font-family: 'Lora', serif;
+  font-family: 'Sora', 'Outfit', sans-serif;
   font-size: 1.35rem;
-  font-weight: 700;
-  color: #0d2e24;
+  font-weight: 800;
+  color: #ffffff;
   letter-spacing: -0.01em;
   margin-bottom: 0.25rem;
 }
@@ -53,9 +55,8 @@
 .tagline {
   font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
-  color: #556b63;
+  color: #64748b;
   line-height: 1.4;
-  font-weight: 500;
 }
 
 .links {
@@ -70,28 +71,29 @@
 }
 
 .groupTitle {
-  font-family: 'Lora', serif;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #0d2e24;
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
 }
 
 .link {
   font-family: 'Inter', sans-serif;
   font-size: 0.9rem;
-  color: #556b63;
+  color: #94a3b8;
   text-decoration: none;
-  font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .link:hover {
-  color: #0d2e24;
+  color: #818cf8;
 }
 
 .bottom {
-  border-top: 1px solid rgba(13, 46, 36, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 2rem;
   display: flex;
   justify-content: space-between;
@@ -102,8 +104,7 @@
 .copyright {
   font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
-  color: #556b63;
-  font-weight: 500;
+  color: #64748b;
 }
 
 .metaLinks {
@@ -114,14 +115,13 @@
 .metaLink {
   font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
-  color: #556b63;
+  color: #64748b;
   text-decoration: none;
-  font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .metaLink:hover {
-  color: #0d2e24;
+  color: #ffffff;
 }
 
 @media (max-width: 1024px) {

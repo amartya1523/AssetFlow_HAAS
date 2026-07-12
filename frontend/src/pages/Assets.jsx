@@ -619,7 +619,7 @@ export default function Assets() {
                     <button
                       className={styles.assetLink}
                       type="button"
-                      onClick={() => navigate(`/app/assets/${asset.id}`)}
+                      onClick={() => navigate(`/assets/${asset.id}`)}
                     >
                       {asset.name}
                     </button>
@@ -634,7 +634,7 @@ export default function Assets() {
                         type="button"
                         className={styles.iconBtn}
                         title="View details"
-                        onClick={() => navigate(`/app/assets/${asset.id}`)}
+                        onClick={() => navigate(`/assets/${asset.id}`)}
                       >
                         <Eye size={15} />
                       </button>
@@ -727,7 +727,7 @@ export function AssetDetail() {
           <AlertCircle size={16} />
           <span>{apiError || 'Asset not found'}</span>
         </div>
-        <Button variant="secondary" onClick={() => navigate('/app/assets')}>
+        <Button variant="secondary" onClick={() => navigate('/assets')}>
           <ArrowLeft size={16} />
           Back to Assets
         </Button>
@@ -745,7 +745,7 @@ export function AssetDetail() {
         <button
           type="button"
           className={styles.backBtn}
-          onClick={() => navigate('/app/assets')}
+          onClick={() => navigate('/assets')}
         >
           <ArrowLeft size={17} />
           Assets

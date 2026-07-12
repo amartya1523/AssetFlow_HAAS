@@ -74,7 +74,7 @@ export default function HowItWorks() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.08 }}
               whileHover={{ 
                 y: -6, 
-                boxShadow: '0 12px 30px rgba(13, 46, 36, 0.06)'
+                boxShadow: '0 12px 30px rgba(99, 102, 241, 0.06)'
               }}
             >
               <div className={styles.numWrapper}>

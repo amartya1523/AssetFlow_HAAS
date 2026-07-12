@@ -49,7 +49,7 @@ export default function Signup() {
       const res = await authAPI.signup(form);
       const { user, token } = res.data.data;
       setAuth(user, token);
-      navigate('/app/dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Unable to create account. Try again.');
     } finally {

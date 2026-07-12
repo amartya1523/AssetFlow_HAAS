@@ -1,8 +1,8 @@
 .section {
   padding: 8rem 2rem;
-  background-color: #faf6f0;
-  border-top: 1px solid rgba(13, 46, 36, 0.08);
-  border-bottom: 1px solid rgba(13, 46, 36, 0.08);
+  background-color: #050814;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   display: flex;
   justify-content: center;
   position: relative;
@@ -23,22 +23,25 @@
 }
 
 .badge {
-  color: #3f6256;
+  background: rgba(99, 102, 241, 0.08);
+  color: #a5b4fc;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   padding: 0.4rem 1.1rem;
-  margin-bottom: 1.25rem;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
 .mainTitle {
-  font-family: 'Lora', serif;
+  font-family: 'Sora', 'Outfit', -apple-system, sans-serif;
   font-size: 2.75rem;
-  font-weight: 400;
-  color: #0d2e24;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
   line-height: 1.2;
   margin-bottom: 1.25rem;
   max-width: 650px;
@@ -46,65 +49,81 @@
 
 .subtitle {
   font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 1.05rem;
-  color: #556b63;
+  font-size: 1.1rem;
+  color: #94a3b8;
   line-height: 1.6;
   max-width: 600px;
-  font-weight: 400;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2.25rem;
+  gap: 2rem;
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid rgba(13, 46, 36, 0.08);
-  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
   padding: 2.5rem;
   position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  box-shadow: 0 4px 20px rgba(13, 46, 36, 0.02);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glowOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(350px circle at 50% 0px, rgba(99, 102, 241, 0.06), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.card:hover .glowOverlay {
+  opacity: 1;
 }
 
 .iconWrapper {
-  background: rgba(13, 70, 54, 0.04);
-  border-radius: 0.5rem;
-  width: 3.25rem;
-  height: 3.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  width: 3.5rem;
+  height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 2rem;
-  color: #0d2e24;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  color: #a5b4fc;
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.02);
 }
 
 .card:hover .iconWrapper {
-  background-color: #0d2e24;
-  color: #faf6f0;
+  background: #6366f1;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
 }
 
 .title {
-  font-family: 'Lora', serif;
+  font-family: 'Sora', 'Outfit', -apple-system, sans-serif;
   font-size: 1.25rem;
-  font-weight: 500;
-  color: #0d2e24;
+  font-weight: 700;
+  color: #ffffff;
   margin-bottom: 0.85rem;
   letter-spacing: -0.01em;
 }
 
 .description {
   font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 0.925rem;
-  color: #556b63;
+  font-size: 0.95rem;
+  color: #94a3b8;
   line-height: 1.6;
-  font-weight: 400;
 }
 
 @media (max-width: 1024px) {

@@ -26,14 +26,14 @@ function PublicOnlyRoute() {
     return null;
   }
 
-  return token ? <Navigate to="/app/dashboard" replace /> : <Outlet />;
+  return token ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
 
 function RoleProtectedRoute({ allowedRoles }) {
   const role = useAuthStore((state) => state.user?.role);
 
   if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;
@@ -67,26 +67,24 @@ function App() {
           </Route>
 
           <Route
-            path="/app"
             element={(
               <RequireAuth>
                 <AppLayout />
               </RequireAuth>
             )}
           >
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="assets" element={<Assets />} />
-            <Route path="assets/:id" element={<AssetDetail />} />
-            <Route path="allocation" element={<Allocation />} />
-            <Route path="booking" element={<Booking />} />
-            <Route path="maintenance" element={<Maintenance />} />
-            <Route path="audit" element={<Audit />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="notifications" element={<Notifications />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assets" element={<Assets />} />
+            <Route path="/assets/:id" element={<AssetDetail />} />
+            <Route path="/allocation" element={<Allocation />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/audit" element={<Audit />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/notifications" element={<Notifications />} />
 
             <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
-              <Route path="organization" element={<Organization />} />
+              <Route path="/organization" element={<Organization />} />
             </Route>
           </Route>
 

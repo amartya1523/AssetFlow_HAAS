@@ -43,15 +43,17 @@ export function FeatureCard({ iconName, title, description, index }) {
   return (
     <motion.div
       className={styles.card}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }}
       whileHover={{ 
-        y: -6, 
-        boxShadow: '0 12px 30px rgba(13, 46, 36, 0.06)'
+        y: -8, 
+        borderColor: 'rgba(99, 102, 241, 0.4)',
+        boxShadow: '0 20px 40px rgba(99, 102, 241, 0.12)'
       }}
     >
+      <div className={styles.glowOverlay} />
       <div className={styles.iconWrapper}>
         <IconComponent className={styles.icon} size={22} />
       </div>

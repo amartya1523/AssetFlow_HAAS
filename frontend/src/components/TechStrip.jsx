@@ -3,12 +3,12 @@ import { motion } from 'framer-motion';
 import styles from './TechStrip.module.css';
 
 const techs = [
-  { name: 'React', color: '#0d2e24' },
-  { name: 'Node.js', color: '#0d2e24' },
-  { name: 'Express', color: '#0d2e24' },
-  { name: 'Prisma ORM', color: '#0d2e24' },
-  { name: 'PostgreSQL', color: '#0d2e24' },
-  { name: 'Framer Motion', color: '#0d2e24' },
+  { name: 'React', color: '#61dafb' },
+  { name: 'Node.js', color: '#339933' },
+  { name: 'Express', color: '#828282' },
+  { name: 'Prisma ORM', color: '#a5b4fc' },
+  { name: 'PostgreSQL', color: '#336791' },
+  { name: 'Framer Motion', color: '#ff007f' },
 ];
 
 export default function TechStrip() {
@@ -35,12 +35,13 @@ export default function TechStrip() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.06 }}
               whileHover={{ 
-                scale: 1.03, 
+                scale: 1.05, 
                 y: -2,
-                boxShadow: '0 8px 24px rgba(13, 46, 36, 0.04)'
+                borderColor: 'rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 0 20px rgba(99, 102, 241, 0.15)'
               }}
             >
-              <span className={styles.dot} />
+              <span className={styles.dot} style={{ backgroundColor: tech.color }} />
               <span className={styles.name}>{tech.name}</span>
             </motion.div>
           ))}
