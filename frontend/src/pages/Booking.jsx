@@ -616,12 +616,12 @@ export default function Booking() {
         <div className={styles.historyHeader}>
           <div>
             <h3 className={styles.historyTitle}>Booking History</h3>
-            <p className={styles.historySubtitle}>Selected resource ki recent bookings yahan dikhengi.</p>
+            <p className={styles.historySubtitle}>Recent bookings for the selected resource will appear here.</p>
           </div>
         </div>
 
         {historyBookings.length === 0 ? (
-          <div className={styles.historyEmpty}>Abhi tak is resource ke liye koi booking history nahi hai.</div>
+          <div className={styles.historyEmpty}>There is no booking history for this resource yet.</div>
         ) : (
           <div className={styles.historyList}>
             {historyBookings.map((booking) => {
