@@ -1,59 +1,57 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, ShieldCheck } from 'lucide-react';
 import AuthLayout from '../components/AuthLayout';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { authAPI } from '../api/auth';
 import useAuthStore from '../context/authStore';
 import styles from './AuthForm.module.css';
+import superStyles from './SuperAdminLogin.module.css';
 
-export default function Signup() {
+export default function SuperAdminLogin({ signedInRole }) {
   const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
-
-  const [form, setForm] = useState({
-    organizationName: '',
-    name: '',
-    email: '',
-    password: '',
-  });
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const logout = useAuthStore((state) => state.logout);
+  const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-    setErrors((er) => ({ ...er, [name]: undefined }));
+  const onChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
     setApiError('');
   };
 
   const validate = () => {
     const next = {};
-    if (!form.organizationName.trim()) next.organizationName = 'Organization name is required';
-    if (!form.name.trim()) next.name = 'Full name is required';
     if (!form.email) next.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Enter a valid email';
     if (!form.password) next.password = 'Password is required';
-    else if (form.password.length < 6) next.password = 'At least 6 characters';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (event) => {
+    event.preventDefault();
     if (!validate()) return;
     setLoading(true);
     setApiError('');
     try {
-      const res = await authAPI.signup(form);
+      const res = await authAPI.login(form);
       const { user, token } = res.data.data;
+      if (user.role !== 'SUPER_ADMIN') {
+        logout();
+        setApiError('This portal only accepts Super Admin credentials.');
+        return;
+      }
       setAuth(user, token);
-      navigate('/dashboard');
+      navigate('/super-admin', { replace: true });
     } catch (err) {
-      setApiError(err.response?.data?.message || 'Unable to create account. Try again.');
+      setApiError(err.response?.data?.message || 'Unable to sign in. Try again.');
     } finally {
       setLoading(false);
     }
@@ -61,18 +59,23 @@ export default function Signup() {
 
   return (
     <AuthLayout
-      title="Create your account"
-      subtitle="Start managing assets in minutes"
-      footer={
-        <>
-          Already have an account? <Link to="/login">Sign in</Link>
-        </>
-      }
+      title="Super Admin Portal"
+      subtitle="Platform-level access for managing all organizations"
+      footer={<Link to="/login">Go to tenant login</Link>}
     >
-      <div className={styles.infoNote}>
-        <CheckCircle2 size={15} />
-        <span>Signup creates your organization and makes you its Admin.</span>
+      <div className={superStyles.badge}>
+        <ShieldCheck size={17} />
+        <span>Use the credentials configured for SUPER_ADMIN in the backend environment.</span>
       </div>
+
+      {signedInRole && signedInRole !== 'SUPER_ADMIN' && (
+        <div className={superStyles.warning}>
+          You are signed in as {signedInRole.replace(/_/g, ' ')}. Sign out before using Super Admin access.
+          <Button type="button" variant="secondary" fullWidth onClick={logout}>
+            Sign out current user
+          </Button>
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className={styles.form} noValidate>
         <AnimatePresence>
@@ -90,52 +93,30 @@ export default function Signup() {
         </AnimatePresence>
 
         <Input
-          id="organizationName"
-          name="organizationName"
-          label="Organization name"
-          placeholder="Acme Operations"
-          value={form.organizationName}
-          onChange={onChange}
-          error={errors.organizationName}
-          autoComplete="organization"
-        />
-
-        <Input
-          id="name"
-          name="name"
-          label="Full name"
-          placeholder="Jane Doe"
-          value={form.name}
-          onChange={onChange}
-          error={errors.name}
-          autoComplete="name"
-        />
-
-        <Input
-          id="email"
+          id="superAdminEmail"
           name="email"
-          label="Email"
+          label="Super Admin email"
           type="email"
-          placeholder="you@company.com"
+          placeholder="platform-admin@assetflow.com"
           value={form.email}
           onChange={onChange}
           error={errors.email}
           autoComplete="email"
         />
         <Input
-          id="password"
+          id="superAdminPassword"
           name="password"
           label="Password"
           type="password"
-          placeholder="At least 6 characters"
+          placeholder="Enter platform password"
           value={form.password}
           onChange={onChange}
           error={errors.password}
-          autoComplete="new-password"
+          autoComplete="current-password"
         />
 
         <Button type="submit" loading={loading} fullWidth>
-          Create account
+          Open Super Admin Portal
         </Button>
       </form>
     </AuthLayout>

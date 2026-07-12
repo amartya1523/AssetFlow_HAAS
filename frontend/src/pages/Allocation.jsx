@@ -9,12 +9,13 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  Loader2,
   XCircle,
   PackageCheck,
   SendHorizonal,
 } from 'lucide-react';
 import { allocationAPI } from '../api/allocation';
+import { assetAPI } from '../api/assets';
+import { orgAPI } from '../api/organization';
 import useAuthStore from '../context/authStore';
 import Button from '../components/Button';
 import styles from './Allocation.module.css';
@@ -74,6 +75,19 @@ function FieldGroup({ label, value }) {
   );
 }
 
+function assetOptionLabel(asset) {
+  const tag = asset.assetTag || 'No tag';
+  const name = asset.name || 'Unnamed asset';
+  const location = asset.location ? ` · ${asset.location}` : '';
+  return `${tag} - ${name}${location}`;
+}
+
+function userOptionLabel(user) {
+  const role = user.role ? ` · ${user.role.replace(/_/g, ' ')}` : '';
+  const department = user.department?.name ? ` · ${user.department.name}` : '';
+  return `${user.name} - ${user.email}${department}${role}`;
+}
+
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
 
 function Skeleton({ rows = 3 }) {
@@ -89,6 +103,12 @@ function Skeleton({ rows = 3 }) {
 // ─── Allocate Form ───────────────────────────────────────────────────────────
 
 function AllocateForm({ onSuccess }) {
+  const [availableAssets, setAvailableAssets] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [assetsLoading, setAssetsLoading] = useState(true);
+  const [employeesLoading, setEmployeesLoading] = useState(true);
+  const [userSearch, setUserSearch] = useState('');
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [form, setForm] = useState({
     assetId: '',
     allocatedToUserId: '',
@@ -103,6 +123,44 @@ function AllocateForm({ onSuccess }) {
   const [transferLoading, setTransferLoading] = useState(false);
   const [transferSuccess, setTransferSuccess] = useState(false);
 
+  const loadAvailableAssets = useCallback(async () => {
+    setAssetsLoading(true);
+    try {
+      const res = await assetAPI.list({ status: 'AVAILABLE' });
+      setAvailableAssets(res.data.data || []);
+    } catch {
+      setAvailableAssets([]);
+    } finally {
+      setAssetsLoading(false);
+    }
+  }, []);
+
+  const loadEmployees = useCallback(async () => {
+    setEmployeesLoading(true);
+    try {
+      const res = await orgAPI.listEmployees({ status: 'ACTIVE' });
+      setEmployees(res.data.data || []);
+    } catch {
+      setEmployees([]);
+    } finally {
+      setEmployeesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAvailableAssets();
+    loadEmployees();
+  }, [loadAvailableAssets, loadEmployees]);
+
+  const filteredEmployees = employees
+    .filter((employee) => {
+      const term = userSearch.trim().toLowerCase();
+      if (!term) return true;
+      return [employee.name, employee.email, employee.role, employee.department?.name]
+        .some((value) => value?.toLowerCase().includes(term));
+    })
+    .slice(0, 8);
+
   const onChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setError('');
@@ -113,9 +171,23 @@ function AllocateForm({ onSuccess }) {
   const onTransferChange = (e) =>
     setTransfer((t) => ({ ...t, [e.target.name]: e.target.value }));
 
+  const selectEmployee = (employee) => {
+    setForm((current) => ({ ...current, allocatedToUserId: employee.id }));
+    setUserSearch(userOptionLabel(employee));
+    setUserDropdownOpen(false);
+    setError('');
+    setConflict(null);
+  };
+
+  const clearEmployee = () => {
+    setForm((current) => ({ ...current, allocatedToUserId: '' }));
+    setUserSearch('');
+    setUserDropdownOpen(false);
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!form.assetId.trim()) { setError('Asset ID is required.'); return; }
+    if (!form.assetId) { setError('Select an available asset.'); return; }
     setLoading(true);
     setConflict(null);
     setError('');
@@ -127,6 +199,8 @@ function AllocateForm({ onSuccess }) {
       });
       onSuccess(res.data.data);
       setForm({ assetId: '', allocatedToUserId: '', expectedReturnDate: '' });
+      setUserSearch('');
+      await loadAvailableAssets();
     } catch (err) {
       const status = err.response?.status;
       const body = err.response?.data;
@@ -179,26 +253,79 @@ function AllocateForm({ onSuccess }) {
 
       <form onSubmit={onSubmit} className={styles.formGrid} noValidate>
         <div className={styles.formField}>
-          <label className={styles.label} htmlFor="alloc-assetId">Asset ID</label>
-          <input
+          <label className={styles.label} htmlFor="alloc-assetId">Available Asset</label>
+          <select
             id="alloc-assetId"
             name="assetId"
             className={styles.input}
-            placeholder="e.g. asset-uuid"
             value={form.assetId}
             onChange={onChange}
-          />
+            disabled={assetsLoading || availableAssets.length === 0}
+          >
+            <option value="">
+              {assetsLoading
+                ? 'Loading available assets...'
+                : availableAssets.length === 0
+                  ? 'No available assets'
+                  : 'Select asset'}
+            </option>
+            {availableAssets.map((asset) => (
+              <option key={asset.id} value={asset.id}>
+                {assetOptionLabel(asset)}
+              </option>
+            ))}
+          </select>
         </div>
         <div className={styles.formField}>
-          <label className={styles.label} htmlFor="alloc-userId">Allocate To (User ID)</label>
-          <input
-            id="alloc-userId"
-            name="allocatedToUserId"
-            className={styles.input}
-            placeholder="User ID (optional)"
-            value={form.allocatedToUserId}
-            onChange={onChange}
-          />
+          <label className={styles.label} htmlFor="alloc-userSearch">Allocate To</label>
+          <div className={styles.searchSelect}>
+            <input
+              id="alloc-userSearch"
+              name="userSearch"
+              className={styles.input}
+              placeholder={employeesLoading ? 'Loading users...' : 'Search name, email, department'}
+              value={userSearch}
+              onChange={(e) => {
+                setUserSearch(e.target.value);
+                setForm((current) => ({ ...current, allocatedToUserId: '' }));
+                setUserDropdownOpen(true);
+              }}
+              onFocus={() => setUserDropdownOpen(true)}
+              disabled={employeesLoading}
+              autoComplete="off"
+            />
+            {form.allocatedToUserId && (
+              <button
+                type="button"
+                className={styles.clearSelect}
+                onClick={clearEmployee}
+                aria-label="Clear selected user"
+              >
+                ×
+              </button>
+            )}
+            {userDropdownOpen && !employeesLoading && (
+              <div className={styles.searchMenu}>
+                {filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((employee) => (
+                    <button
+                      key={employee.id}
+                      type="button"
+                      className={styles.searchOption}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => selectEmployee(employee)}
+                    >
+                      <strong>{employee.name}</strong>
+                      <span>{employee.email}</span>
+                      <small>{employee.department?.name || 'No department'} · {employee.role.replace(/_/g, ' ')}</small>
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.searchEmpty}>No matching users</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className={styles.formField}>
           <label className={styles.label} htmlFor="alloc-dueDate">Expected Return Date</label>
@@ -338,9 +465,154 @@ function AllocateForm({ onSuccess }) {
   );
 }
 
+// ─── Employee Transfer Form ──────────────────────────────────────────────────
+
+function EmployeeTransferForm({ onSuccess }) {
+  const currentUser = useAuthStore((s) => s.user);
+  const [allocatedAssets, setAllocatedAssets] = useState([]);
+  const [assetsLoading, setAssetsLoading] = useState(true);
+  const [form, setForm] = useState({ assetId: '', reason: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const loadAllocatedAssets = useCallback(async () => {
+    setAssetsLoading(true);
+    try {
+      const res = await assetAPI.list({ status: 'ALLOCATED' });
+      setAllocatedAssets(res.data.data || []);
+    } catch {
+      setAllocatedAssets([]);
+    } finally {
+      setAssetsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAllocatedAssets();
+  }, [loadAllocatedAssets]);
+
+  const onChange = (e) => {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setError('');
+    setSuccess(false);
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.assetId) {
+      setError('Select an allocated asset.');
+      return;
+    }
+    if (!form.reason.trim() || form.reason.trim().length < 5) {
+      setError('Reason must be at least 5 characters.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+    try {
+      await allocationAPI.requestTransfer({
+        assetId: form.assetId,
+        toUserId: currentUser.id,
+        reason: form.reason.trim(),
+      });
+      setSuccess(true);
+      setForm({ assetId: '', reason: '' });
+      onSuccess();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit transfer request.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.card}>
+      <SectionHeader title="Request Asset Transfer" />
+
+      <form onSubmit={onSubmit} className={styles.formGrid} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+        <div className={styles.formField}>
+          <label className={styles.label} htmlFor="tf-assetId">Allocated Asset</label>
+          <select
+            id="tf-assetId"
+            name="assetId"
+            className={styles.input}
+            value={form.assetId}
+            onChange={onChange}
+            disabled={assetsLoading || allocatedAssets.length === 0}
+          >
+            <option value="">
+              {assetsLoading
+                ? 'Loading allocated assets...'
+                : allocatedAssets.length === 0
+                  ? 'No allocated assets'
+                  : 'Select asset to request'}
+            </option>
+            {allocatedAssets.map((asset) => (
+              <option key={asset.id} value={asset.id}>
+                {assetOptionLabel(asset)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.formField}>
+          <label className={styles.label} htmlFor="tf-reason">Reason for Transfer</label>
+          <textarea
+            id="tf-reason"
+            name="reason"
+            className={`${styles.input} ${styles.textarea}`}
+            placeholder="Explain why you need this asset (min 5 characters)"
+            rows={3}
+            value={form.reason}
+            onChange={onChange}
+          />
+        </div>
+
+        <div className={styles.formActions}>
+          <Button type="submit" loading={loading} style={{ width: '100%' }}>
+            <SendHorizonal size={15} />
+            Submit Request
+          </Button>
+        </div>
+      </form>
+
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className={styles.errorBanner}
+            style={{ marginTop: 'var(--space-md)' }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <XCircle size={16} />
+            <span>{error}</span>
+          </motion.div>
+        )}
+        {success && (
+          <motion.div
+            className={styles.transferSuccessBanner}
+            style={{ marginTop: 'var(--space-md)', borderRadius: 'var(--radius-md)' }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <CheckCircle2 size={16} />
+            <span>Transfer request submitted successfully. Awaiting approval.</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Allocation History Table ─────────────────────────────────────────────────
 
 function AllocationHistory({ refresh }) {
+  const user = useAuthStore((s) => s.user);
+  const canReturn = ['ADMIN', 'ASSET_MANAGER', 'DEPARTMENT_HEAD'].includes(user?.role);
   const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
@@ -446,7 +718,7 @@ function AllocationHistory({ refresh }) {
                             <FieldGroup label="Condition Note" value={a.conditionNoteOnReturn} />
                           </div>
 
-                          {a.status === 'ACTIVE' && (
+                          {a.status === 'ACTIVE' && canReturn && (
                             <div className={styles.returnSection}>
                               {returnId === a.id ? (
                                 <div className={styles.returnForm}>
@@ -622,6 +894,7 @@ function TransferPanel({ userRole, refresh }) {
 export default function Allocation() {
   const user = useAuthStore((s) => s.user);
   const [refreshKey, setRefreshKey] = useState(0);
+  const isEmployee = user?.role === 'EMPLOYEE';
 
   const onAllocateSuccess = () => setRefreshKey((k) => k + 1);
 
@@ -635,14 +908,20 @@ export default function Allocation() {
         <div>
           <h2 className={styles.pageTitle}>Allocation &amp; Transfer</h2>
           <p className={styles.pageSubtitle}>
-            Allocate assets to employees, manage transfers, and track returns.
+            {isEmployee
+              ? 'Request asset transfers and view your active allocations.'
+              : 'Allocate assets to employees, manage transfers, and track returns.'}
           </p>
         </div>
       </motion.div>
 
       <div className={styles.layout}>
         <div className={styles.leftCol}>
-          <AllocateForm onSuccess={onAllocateSuccess} />
+          {isEmployee ? (
+            <EmployeeTransferForm onSuccess={onAllocateSuccess} />
+          ) : (
+            <AllocateForm onSuccess={onAllocateSuccess} />
+          )}
           <AllocationHistory refresh={refreshKey} />
         </div>
         <div className={styles.rightCol}>

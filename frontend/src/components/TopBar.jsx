@@ -10,6 +10,7 @@ export default function TopBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const role = useAuthStore((s) => s.user?.role);
   const token = useAuthStore((s) => s.token);
 
   // Live unread notifications count
@@ -41,6 +42,18 @@ export default function TopBar() {
       <h1 className={styles.title}>{title}</h1>
 
       <div className={styles.actions}>
+        {role !== 'SUPER_ADMIN' && (
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={() => navigate('/app/notifications')}
+            aria-label="Notifications"
+            title="Notifications"
+          >
+            <Bell size={19} />
+            <span className={styles.dot} />
+          </button>
+        )}
         <button
           type="button"
           className={styles.iconBtn}

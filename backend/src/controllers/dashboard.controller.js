@@ -2,6 +2,12 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const dashboardService = require('../services/dashboard.service');
 
+const getOverview = asyncHandler(async (req, res) => {
+  const data = await dashboardService.getOverview(req.tenant.organizationId, req.query);
+  return sendSuccess(res, { data });
+});
+
+module.exports = { getOverview };
 /**
  * GET /api/v1/dashboard/kpis
  * Returns all KPIs needed for the dashboard in one call.

@@ -43,6 +43,7 @@ export default function Login() {
       const res = await authAPI.login(form);
       const { user, token } = res.data.data;
       setAuth(user, token);
+      navigate(user.role === 'SUPER_ADMIN' ? '/super-admin' : '/app/dashboard');
       navigate('/dashboard');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Unable to sign in. Try again.');
@@ -59,7 +60,7 @@ export default function Login() {
           <div className={styles.divider} />
           <div className={styles.signupHeader}>New here?</div>
           <p className={styles.signupCopy}>
-            Sign up creates an employee account, admin roles assigned later
+            Sign up creates a new organization with you as Admin
           </p>
           <Button
             type="button"

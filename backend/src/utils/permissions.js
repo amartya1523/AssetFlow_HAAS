@@ -1,4 +1,5 @@
 const ApiError = require('./ApiError');
+const prisma = require('../config/prisma');
 
 /**
  * Role-Based Access Control toolkit.
@@ -36,6 +37,7 @@ const ROLES = Object.freeze({
   DEPARTMENT_HEAD: 'DEPARTMENT_HEAD',
   ASSET_MANAGER: 'ASSET_MANAGER',
   ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
 });
 
 const ALL_ROLES = Object.freeze(Object.values(ROLES));
@@ -73,6 +75,10 @@ const MODULE_ACTIONS = Object.freeze({
     'organization:manage',
     'employees:read',
     'employees:update-role',
+    'users:create',
+    'users:read',
+    'users:update',
+    'users:permissions',
   ],
   assets: [
     'assets:create',
@@ -120,6 +126,11 @@ const MODULE_ACTIONS = Object.freeze({
     'reports:view',
     'reports:export',
   ],
+  platform: [
+    'platform:organizations:read',
+    'platform:organizations:update',
+    'platform:assets:read',
+  ],
 });
 
 /**
@@ -136,6 +147,8 @@ const ALL_ACTIONS = Object.freeze(
 // so the views can never drift.
 
 const ROLE_PERMISSIONS = Object.freeze({
+  [ROLES.SUPER_ADMIN]: [WILDCARD],
+
   [ROLES.ADMIN]: [WILDCARD],
 
   [ROLES.ASSET_MANAGER]: [
@@ -219,6 +232,11 @@ const ROLE_PERMISSIONS = Object.freeze({
     'auth:reset-password',
     // assets — browse the directory
     'assets:read',
+    'assets:read-history',
+    // allocation & transfer
+    'allocation:read',
+    'transfer:create',
+    'transfer:read',
     // booking — book resources for themselves
     'booking:create',
     'booking:read',
@@ -271,6 +289,36 @@ function can(role, action) {
 }
 
 /**
+ * User-aware permission resolver. Explicit user overrides win over role
+ * defaults; SUPER_ADMIN remains a platform-wide wildcard.
+ *
+ * @param {{ userId?: string, role: string }} user
+ * @param {string} action
+ * @returns {Promise<boolean>}
+ */
+async function canUser(user, action) {
+  if (!user) return false;
+  if (user.role === ROLES.SUPER_ADMIN) return true;
+
+  if (user.userId || user.id) {
+    const override = await prisma.userPermissionOverride.findUnique({
+      where: {
+        userId_permissionKey: {
+          userId: user.userId || user.id,
+          permissionKey: action,
+        },
+      },
+      select: { effect: true },
+    });
+
+    if (override?.effect === 'GRANT') return true;
+    if (override?.effect === 'REVOKE') return false;
+  }
+
+  return can(user.role, action);
+}
+
+/**
  * Middleware factory: protect a route by intent rather than by role list.
  *
  * Reads the permissions matrix to resolve the allowed roles for `action` and
@@ -287,15 +335,40 @@ function can(role, action) {
  * @returns {Function} Express middleware
  */
 function requirePermission(action) {
-  return (req, _res, next) => {
-    if (!req.user) {
-      return next(new ApiError(401, 'Authentication required'));
+  return async (req, _res, next) => {
+    try {
+      if (!req.user) {
+        return next(new ApiError(401, 'Authentication required'));
+      }
+      if (!(await canUser(req.user, action))) {
+        return next(new ApiError(403, 'Insufficient permissions'));
+      }
+      return next();
+    } catch (err) {
+      return next(err);
     }
-    if (!can(req.user.role, action)) {
-      return next(new ApiError(403, 'Insufficient permissions'));
-    }
-    return next();
   };
+}
+
+function getRoleDefaults(role) {
+  return Object.fromEntries(
+    ALL_ACTIONS.map((action) => [action, can(role, action)]),
+  );
+}
+
+async function getUserPermissionMap(userId, role) {
+  const defaults = getRoleDefaults(role);
+  const overrides = await prisma.userPermissionOverride.findMany({
+    where: { userId },
+    orderBy: { permissionKey: 'asc' },
+  });
+
+  const effective = { ...defaults };
+  overrides.forEach((override) => {
+    effective[override.permissionKey] = override.effect === 'GRANT';
+  });
+
+  return { defaults, overrides, effective };
 }
 
 /**
@@ -335,6 +408,9 @@ module.exports = {
   PERMISSIONS,
   WILDCARD,
   can,
+  canUser,
   requirePermission,
+  getRoleDefaults,
+  getUserPermissionMap,
   getDepartmentScope,
 };

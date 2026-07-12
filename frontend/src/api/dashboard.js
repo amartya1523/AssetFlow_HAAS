@@ -1,6 +1,7 @@
 import apiClient from './client';
 
 export const dashboardAPI = {
+  overview: (params) => apiClient.get('/dashboard', { params }),
   /** GET /api/v1/dashboard/kpis */
   getKPIs: () => apiClient.get('/dashboard/kpis'),
 

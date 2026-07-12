@@ -7,6 +7,7 @@ const { getDepartmentScope } = require('../utils/permissions');
 
 const ASSET_SELECT = {
   id: true,
+  organizationId: true,
   name: true,
   categoryId: true,
   departmentId: true,
@@ -87,24 +88,29 @@ async function getActor(authUser) {
   if (!authUser) return null;
 
   if (authUser.role !== 'DEPARTMENT_HEAD') {
-    return { id: authUser.userId, role: authUser.role, departmentId: null };
+    return {
+      id: authUser.userId,
+      role: authUser.role,
+      departmentId: null,
+      organizationId: authUser.organizationId || null,
+    };
   }
 
   return prisma.user.findUnique({
     where: { id: authUser.userId },
-    select: { id: true, role: true, departmentId: true },
+    select: { id: true, role: true, departmentId: true, organizationId: true },
   });
 }
 
-async function assertCategory(categoryId) {
-  const category = await prisma.assetCategory.findUnique({ where: { id: categoryId } });
+async function assertCategory(organizationId, categoryId) {
+  const category = await prisma.assetCategory.findFirst({ where: { id: categoryId, organizationId } });
   if (!category) throw ApiError.badRequest('Referenced asset category does not exist');
   if (category.status !== 'ACTIVE') throw ApiError.badRequest('Referenced asset category is inactive');
 }
 
-async function assertDepartment(departmentId) {
+async function assertDepartment(organizationId, departmentId) {
   if (!departmentId) return;
-  const department = await prisma.department.findUnique({ where: { id: departmentId } });
+  const department = await prisma.department.findFirst({ where: { id: departmentId, organizationId } });
   if (!department) throw ApiError.badRequest('Referenced department does not exist');
   if (department.status !== 'ACTIVE') throw ApiError.badRequest('Referenced department is inactive');
 }
@@ -155,19 +161,22 @@ function buildUpdateData(payload) {
   return data;
 }
 
-async function createAsset(payload, actorId = null) {
+async function createAsset(payload, authUser = null) {
+  const organizationId = authUser?.organizationId;
+  if (!organizationId) throw ApiError.forbidden('Organization scope is required');
+
   blockStatusPatch(payload);
   const data = buildCreateData(payload);
 
-  await assertCategory(data.categoryId);
-  await assertDepartment(data.departmentId);
+  await assertCategory(organizationId, data.categoryId);
+  await assertDepartment(organizationId, data.departmentId);
 
   let lastError;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
       const asset = await prisma.$transaction(async (tx) => {
         const latest = await tx.asset.findFirst({
-          where: { assetTag: { startsWith: 'AF-' } },
+          where: { organizationId, assetTag: { startsWith: 'AF-' } },
           orderBy: { assetTag: 'desc' },
           select: { assetTag: true },
         });
@@ -175,6 +184,7 @@ async function createAsset(payload, actorId = null) {
         return tx.asset.create({
           data: {
             ...data,
+            organizationId,
             assetTag: nextAssetTag(latest?.assetTag),
           },
           select: ASSET_SELECT,
@@ -182,7 +192,8 @@ async function createAsset(payload, actorId = null) {
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
       await logActivity({
-        userId: actorId,
+        organizationId,
+        userId: authUser?.userId || null,
         action: 'ASSET_CREATED',
         entityType: 'Asset',
         entityId: asset.id,
@@ -202,7 +213,7 @@ async function createAsset(payload, actorId = null) {
 async function listAssets(filters = {}, authUser = null) {
   const actor = await getActor(authUser);
   const scope = getDepartmentScope(actor);
-  const where = { ...scope };
+  const where = { organizationId: actor?.organizationId || authUser?.organizationId || null, ...scope };
 
   if (filters.categoryId) where.categoryId = filters.categoryId;
   if (filters.departmentId && !scope.departmentId) where.departmentId = filters.departmentId;
@@ -230,7 +241,7 @@ async function getAssetById(id, authUser = null) {
   const scope = getDepartmentScope(actor);
 
   const asset = await prisma.asset.findFirst({
-    where: { id, ...scope },
+    where: { id, organizationId: actor?.organizationId || authUser?.organizationId || null, ...scope },
     select: ASSET_SELECT,
   });
 
@@ -238,15 +249,18 @@ async function getAssetById(id, authUser = null) {
   return asset;
 }
 
-async function updateAsset(id, payload, actorId = null) {
+async function updateAsset(id, payload, authUser = null) {
+  const organizationId = authUser?.organizationId;
+  if (!organizationId) throw ApiError.forbidden('Organization scope is required');
+
   blockStatusPatch(payload);
 
-  const existing = await prisma.asset.findUnique({ where: { id }, select: ASSET_SELECT });
+  const existing = await prisma.asset.findFirst({ where: { id, organizationId }, select: ASSET_SELECT });
   if (!existing) throw ApiError.notFound('Asset not found');
 
   const data = buildUpdateData(payload);
-  if (data.categoryId) await assertCategory(data.categoryId);
-  if (hasOwn(data, 'departmentId')) await assertDepartment(data.departmentId);
+  if (data.categoryId) await assertCategory(organizationId, data.categoryId);
+  if (hasOwn(data, 'departmentId')) await assertDepartment(organizationId, data.departmentId);
 
   const updated = await prisma.asset.update({
     where: { id },
@@ -255,7 +269,8 @@ async function updateAsset(id, payload, actorId = null) {
   });
 
   await logActivity({
-    userId: actorId,
+    organizationId,
+    userId: authUser?.userId || null,
     action: 'ASSET_UPDATED',
     entityType: 'Asset',
     entityId: id,
@@ -267,14 +282,15 @@ async function updateAsset(id, payload, actorId = null) {
 
 async function getAssetHistory(id, authUser = null) {
   const asset = await getAssetById(id, authUser);
+  const organizationId = asset.organizationId;
 
   const [activityLogs, allocations, transfers, bookings, maintenanceRequests, auditItems] = await Promise.all([
     prisma.activityLog.findMany({
-      where: { entityType: 'Asset', entityId: id },
+      where: { organizationId, entityType: 'Asset', entityId: id },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.allocation.findMany({
-      where: { assetId: id },
+      where: { organizationId, assetId: id },
       orderBy: { createdAt: 'desc' },
       include: {
         allocatedToUser: { select: { id: true, name: true, email: true } },
@@ -282,7 +298,7 @@ async function getAssetHistory(id, authUser = null) {
       },
     }),
     prisma.transfer.findMany({
-      where: { assetId: id },
+      where: { organizationId, assetId: id },
       orderBy: { createdAt: 'desc' },
       include: {
         fromUser: { select: { id: true, name: true, email: true } },
@@ -291,12 +307,12 @@ async function getAssetHistory(id, authUser = null) {
       },
     }),
     prisma.booking.findMany({
-      where: { assetId: id },
+      where: { organizationId, assetId: id },
       orderBy: { createdAt: 'desc' },
       include: { bookedBy: { select: { id: true, name: true, email: true } } },
     }),
     prisma.maintenanceRequest.findMany({
-      where: { assetId: id },
+      where: { organizationId, assetId: id },
       orderBy: { createdAt: 'desc' },
       include: {
         raisedBy: { select: { id: true, name: true, email: true } },
@@ -304,7 +320,7 @@ async function getAssetHistory(id, authUser = null) {
       },
     }),
     prisma.auditItem.findMany({
-      where: { assetId: id },
+      where: { organizationId, assetId: id },
       orderBy: { createdAt: 'desc' },
       include: {
         auditCycle: { select: { id: true, name: true, status: true } },

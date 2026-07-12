@@ -19,6 +19,12 @@ function withOverdue(allocation) {
   return { ...allocation, isOverdue };
 }
 
+function requireOrganization(authUser) {
+  const organizationId = authUser?.organizationId;
+  if (!organizationId) throw ApiError.forbidden('Organization scope is required');
+  return organizationId;
+}
+
 // ─── Allocation ──────────────────────────────────────────────────────────────
 
 /**
@@ -32,10 +38,12 @@ function withOverdue(allocation) {
  * 4. On success: create Allocation record + set asset.status = ALLOCATED
  *    in one Prisma transaction.
  */
-async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartmentId, expectedReturnDate }) {
+async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartmentId, expectedReturnDate }, authUser) {
+  const organizationId = requireOrganization(authUser);
+
   // 1. Fetch asset
-  const asset = await prisma.asset.findUnique({
-    where: { id: assetId },
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, organizationId },
   });
   if (!asset) {
     throw ApiError.notFound('Asset not found');
@@ -52,7 +60,7 @@ async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartm
 
   // 3. Conflict check — single active allocation guard
   const existing = await prisma.allocation.findFirst({
-    where: { assetId, status: 'ACTIVE' },
+    where: { organizationId, assetId, status: 'ACTIVE' },
     include: {
       allocatedToUser: {
         select: { id: true, name: true, email: true, departmentId: true },
@@ -62,6 +70,16 @@ async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartm
       },
     },
   });
+
+  if (allocatedToUserId && !(await prisma.user.findFirst({ where: { id: allocatedToUserId, organizationId } }))) {
+    throw ApiError.badRequest('Referenced user does not exist');
+  }
+  if (
+    allocatedToDepartmentId &&
+    !(await prisma.department.findFirst({ where: { id: allocatedToDepartmentId, organizationId } }))
+  ) {
+    throw ApiError.badRequest('Referenced department does not exist');
+  }
 
   if (existing) {
     // Return 409 with structured conflict data so the Task 12 frontend can
@@ -85,6 +103,7 @@ async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartm
   const [allocation] = await prisma.$transaction([
     prisma.allocation.create({
       data: {
+        organizationId,
         assetId,
         allocatedToUserId: allocatedToUserId ?? null,
         allocatedToDepartmentId: allocatedToDepartmentId ?? null,
@@ -115,9 +134,11 @@ async function createAllocation({ assetId, allocatedToUserId, allocatedToDepartm
 /**
  * Return an asset — close the active allocation and set asset back to AVAILABLE.
  */
-async function returnAllocation(allocationId, { conditionNoteOnReturn } = {}) {
-  const allocation = await prisma.allocation.findUnique({
-    where: { id: allocationId },
+async function returnAllocation(allocationId, { conditionNoteOnReturn } = {}, authUser) {
+  const organizationId = requireOrganization(authUser);
+
+  const allocation = await prisma.allocation.findFirst({
+    where: { id: allocationId, organizationId },
   });
 
   if (!allocation) {
@@ -163,10 +184,15 @@ async function returnAllocation(allocationId, { conditionNoteOnReturn } = {}) {
  * List allocations with optional filters.
  * Enriches each record with isOverdue derived flag.
  */
-async function listAllocations({ assetId, allocatedToUserId, status } = {}) {
-  const where = {};
+async function listAllocations({ assetId, allocatedToUserId, status } = {}, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const where = { organizationId };
   if (assetId) where.assetId = assetId;
-  if (allocatedToUserId) where.allocatedToUserId = allocatedToUserId;
+  if (authUser.role === 'EMPLOYEE') {
+    where.allocatedToUserId = authUser.userId;
+  } else if (allocatedToUserId) {
+    where.allocatedToUserId = allocatedToUserId;
+  }
   if (status) where.status = status;
 
   const allocations = await prisma.allocation.findMany({
@@ -191,9 +217,10 @@ async function listAllocations({ assetId, allocatedToUserId, status } = {}) {
 /**
  * Get a single allocation by ID with isOverdue derived.
  */
-async function getAllocationById(id) {
-  const allocation = await prisma.allocation.findUnique({
-    where: { id },
+async function getAllocationById(id, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const allocation = await prisma.allocation.findFirst({
+    where: { id, organizationId },
     include: {
       asset: {
         select: { id: true, assetTag: true, name: true, status: true },
@@ -222,9 +249,11 @@ async function getAllocationById(id) {
  * - No duplicate REQUESTED transfer allowed for the same asset.
  * - reason is required (enforced by validator, but double-checked here).
  */
-async function createTransfer({ assetId, fromUserId, toUserId, reason, requestedById }) {
+async function createTransfer({ assetId, fromUserId, toUserId, reason, requestedById }, authUser) {
+  const organizationId = requireOrganization(authUser);
+
   // 1. Asset must exist and be ALLOCATED
-  const asset = await prisma.asset.findUnique({ where: { id: assetId } });
+  const asset = await prisma.asset.findFirst({ where: { id: assetId, organizationId } });
   if (!asset) throw ApiError.notFound('Asset not found');
 
   if (asset.status !== 'ALLOCATED') {
@@ -236,7 +265,7 @@ async function createTransfer({ assetId, fromUserId, toUserId, reason, requested
 
   // 2. Confirm active allocation exists
   const activeAllocation = await prisma.allocation.findFirst({
-    where: { assetId, status: 'ACTIVE' },
+    where: { organizationId, assetId, status: 'ACTIVE' },
   });
   if (!activeAllocation) {
     throw new ApiError(
@@ -247,7 +276,7 @@ async function createTransfer({ assetId, fromUserId, toUserId, reason, requested
 
   // 3. Block duplicate pending transfers for the same asset
   const existingPending = await prisma.transfer.findFirst({
-    where: { assetId, status: 'REQUESTED' },
+    where: { organizationId, assetId, status: 'REQUESTED' },
   });
   if (existingPending) {
     throw new ApiError(
@@ -257,14 +286,22 @@ async function createTransfer({ assetId, fromUserId, toUserId, reason, requested
   }
 
   // 4. from and to must differ
-  if (fromUserId && toUserId && fromUserId === toUserId) {
+  const resolvedFromUserId = fromUserId || activeAllocation.allocatedToUserId || null;
+  if (resolvedFromUserId && toUserId && resolvedFromUserId === toUserId) {
     throw ApiError.badRequest('fromUserId and toUserId must be different');
+  }
+  if (resolvedFromUserId && !(await prisma.user.findFirst({ where: { id: resolvedFromUserId, organizationId } }))) {
+    throw ApiError.badRequest('fromUserId does not exist');
+  }
+  if (toUserId && !(await prisma.user.findFirst({ where: { id: toUserId, organizationId } }))) {
+    throw ApiError.badRequest('toUserId does not exist');
   }
 
   const transfer = await prisma.transfer.create({
     data: {
+      organizationId,
       assetId,
-      fromUserId: fromUserId ?? null,
+      fromUserId: resolvedFromUserId,
       toUserId: toUserId ?? null,
       requestedById,
       reason,
@@ -293,9 +330,10 @@ async function createTransfer({ assetId, fromUserId, toUserId, reason, requested
  * This is the most critical operation in the entire product — history is
  * fully preserved because the old allocation row is never deleted.
  */
-async function approveTransfer(transferId, approverId) {
-  const transfer = await prisma.transfer.findUnique({
-    where: { id: transferId },
+async function approveTransfer(transferId, approverId, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const transfer = await prisma.transfer.findFirst({
+    where: { id: transferId, organizationId },
   });
 
   if (!transfer) throw ApiError.notFound('Transfer request not found');
@@ -309,7 +347,7 @@ async function approveTransfer(transferId, approverId) {
 
   // Confirm there is still an active allocation to close
   const activeAllocation = await prisma.allocation.findFirst({
-    where: { assetId: transfer.assetId, status: 'ACTIVE' },
+    where: { organizationId, assetId: transfer.assetId, status: 'ACTIVE' },
   });
 
   if (!activeAllocation) {
@@ -334,6 +372,7 @@ async function approveTransfer(transferId, approverId) {
       // Step 2 — open a new allocation for the receiving user/department
       prisma.allocation.create({
         data: {
+          organizationId,
           assetId: transfer.assetId,
           allocatedToUserId: transfer.toUserId ?? null,
           status: 'ACTIVE',
@@ -377,9 +416,10 @@ async function approveTransfer(transferId, approverId) {
  * Reject a transfer request.
  * Asset state does NOT change — the existing allocation stays ACTIVE.
  */
-async function rejectTransfer(transferId, approverId) {
-  const transfer = await prisma.transfer.findUnique({
-    where: { id: transferId },
+async function rejectTransfer(transferId, approverId, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const transfer = await prisma.transfer.findFirst({
+    where: { id: transferId, organizationId },
   });
 
   if (!transfer) throw ApiError.notFound('Transfer request not found');
@@ -411,11 +451,21 @@ async function rejectTransfer(transferId, approverId) {
 /**
  * List transfer requests with optional filters.
  */
-async function listTransfers({ assetId, fromUserId, toUserId, status } = {}) {
-  const where = {};
+async function listTransfers({ assetId, fromUserId, toUserId, status } = {}, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const where = { organizationId };
   if (assetId) where.assetId = assetId;
-  if (fromUserId) where.fromUserId = fromUserId;
-  if (toUserId) where.toUserId = toUserId;
+  
+  if (authUser.role === 'EMPLOYEE') {
+    where.OR = [
+      { requestedById: authUser.userId },
+      { toUserId: authUser.userId },
+      { fromUserId: authUser.userId },
+    ];
+  } else {
+    if (fromUserId) where.fromUserId = fromUserId;
+    if (toUserId) where.toUserId = toUserId;
+  }
   if (status) where.status = status;
 
   return prisma.transfer.findMany({
@@ -433,9 +483,10 @@ async function listTransfers({ assetId, fromUserId, toUserId, status } = {}) {
 /**
  * Get a single transfer by ID.
  */
-async function getTransferById(id) {
-  const transfer = await prisma.transfer.findUnique({
-    where: { id },
+async function getTransferById(id, authUser) {
+  const organizationId = requireOrganization(authUser);
+  const transfer = await prisma.transfer.findFirst({
+    where: { id, organizationId },
     include: {
       asset: { select: { id: true, assetTag: true, name: true, status: true } },
       fromUser: { select: { id: true, name: true, email: true } },
@@ -445,6 +496,14 @@ async function getTransferById(id) {
   });
 
   if (!transfer) throw ApiError.notFound('Transfer not found');
+
+  if (authUser.role === 'EMPLOYEE' &&
+      transfer.requestedById !== authUser.userId &&
+      transfer.toUserId !== authUser.userId &&
+      transfer.fromUserId !== authUser.userId) {
+    throw ApiError.forbidden('Insufficient permissions');
+  }
+
   return transfer;
 }
 

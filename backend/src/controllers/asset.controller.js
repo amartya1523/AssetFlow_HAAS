@@ -3,7 +3,7 @@ const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const assetService = require('../services/asset.service');
 
 const createAsset = asyncHandler(async (req, res) => {
-  const asset = await assetService.createAsset(req.body, req.user.userId);
+  const asset = await assetService.createAsset(req.body, req.user);
   return sendCreated(res, asset, 'Asset registered');
 });
 
@@ -18,7 +18,7 @@ const getAssetById = asyncHandler(async (req, res) => {
 });
 
 const updateAsset = asyncHandler(async (req, res) => {
-  const asset = await assetService.updateAsset(req.params.id, req.body, req.user.userId);
+  const asset = await assetService.updateAsset(req.params.id, req.body, req.user);
   return sendSuccess(res, { data: asset, message: 'Asset updated' });
 });
 

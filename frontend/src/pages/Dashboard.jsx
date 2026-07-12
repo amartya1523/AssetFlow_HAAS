@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { AlertCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +21,24 @@ import {
 import { dashboardAPI } from '../api/dashboard';
 import useAuthStore from '../context/authStore';
 import styles from './Dashboard.module.css';
+
+function formatActivityAction(action) {
+  return action
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  return new Date(value).toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -143,7 +164,36 @@ function QuickAction({ icon: Icon, label, to, color }) {
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const firstName = user?.name?.trim()?.split(/\s+/)[0] || 'User';
+  const [overview, setOverview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+
+    dashboardAPI.overview()
+      .then((res) => {
+        if (!cancelled) setOverview(res.data.data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.response?.data?.message || 'Failed to load dashboard data');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const stats = overview?.stats || {};
+
+  const cards = [
+    { label: 'Total Assets', value: stats.totalAssets, color: 'blue' },
+    { label: 'Active Allocations', value: stats.activeAllocations, color: 'purple' },
+    { label: 'Pending Requests', value: stats.pendingRequests, color: 'amber' },
+    { label: 'Maintenance Due', value: stats.maintenanceDue, color: 'rose' },
   const [kpis, setKpis] = useState(null);
   const [activity, setActivity] = useState([]);
   const [kpisLoading, setKpisLoading] = useState(true);
@@ -220,6 +270,7 @@ export default function Dashboard() {
       sub: 'next 7 days',
     },
   ];
+  const recentActivity = overview?.recentActivity || [];
 
   const todayLabel = new Date().toLocaleDateString('en-IN', {
     weekday: 'long',
@@ -249,6 +300,15 @@ export default function Dashboard() {
         </button>
       </motion.div>
 
+      {error && (
+        <div className={styles.errorBanner}>
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className={styles.kpiGrid}>
+        {cards.map((c, i) => (
       {/* Overdue alert banner */}
       <AnimatePresence>
         {isOverdue && !kpisLoading && (
@@ -258,6 +318,8 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
           >
+            <span className={styles.kpiLabel}>{c.label}</span>
+            <span className={styles.kpiValue}>{loading ? '...' : c.value ?? 0}</span>
             <AlertTriangle size={17} />
             <span>
               <strong>{kpis.overdueAllocations}</strong> allocation
@@ -286,6 +348,31 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
+        <h3 className={styles.sectionTitle}>Recent Activity</h3>
+        {loading ? (
+          <div className={styles.emptyState}>
+            <p>Loading activity...</p>
+          </div>
+        ) : recentActivity.length > 0 ? (
+          <div className={styles.activityList}>
+            {recentActivity.map((entry) => (
+              <div key={entry.id} className={styles.activityItem}>
+                <div className={styles.activityDot} />
+                <div>
+                  <strong>{formatActivityAction(entry.action)}</strong>
+                  <p>
+                    {entry.entityType}
+                    {entry.user?.name ? ` by ${entry.user.name}` : ''}
+                  </p>
+                </div>
+                <span>{formatDateTime(entry.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <p>No activity yet. Data will appear as your organization starts using AssetFlow.</p>
+          </div>
         <h3 className={styles.sectionTitle}>Quick Actions</h3>
         <div className={styles.quickActions}>
           <QuickAction icon={Plus}          label="Register Asset"   to="/app/assets"      color="blue"   />

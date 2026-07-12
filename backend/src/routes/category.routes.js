@@ -3,12 +3,13 @@ const { body } = require('express-validator');
 
 const orgController = require('../controllers/organization.controller');
 const { authenticate, authorize } = require('../middleware/auth');
+const { requireTenantScope } = require('../middleware/tenantScope');
 const validate = require('../middleware/validate');
 
 const router = express.Router();
 
 // Every organization master-data endpoint is admin-only.
-router.use(authenticate, authorize('ADMIN'));
+router.use(authenticate, requireTenantScope, authorize('ADMIN'));
 
 // GET /api/v1/categories
 router.get('/', orgController.listCategories);

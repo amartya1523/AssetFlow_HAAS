@@ -4,11 +4,11 @@ const authService = require('../services/auth.service');
 
 /**
  * POST /api/v1/auth/signup
- * Always creates EMPLOYEE role — client cannot self-elevate.
+ * Creates a tenant organization and its first ADMIN user.
  */
 const signup = asyncHandler(async (req, res) => {
-  const { user, token } = await authService.signup(req.body);
-  return sendCreated(res, { user, token });
+  const { user, organization, token } = await authService.signup(req.body);
+  return sendCreated(res, { user, organization, token });
 });
 
 /**
