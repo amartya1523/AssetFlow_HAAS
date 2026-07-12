@@ -7,7 +7,7 @@ const getOverview = asyncHandler(async (req, res) => {
   return sendSuccess(res, { data });
 });
 
-module.exports = { getOverview };
+
 /**
  * GET /api/v1/dashboard/kpis
  * Returns all KPIs needed for the dashboard in one call.
@@ -28,6 +28,7 @@ const getRecentActivity = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getOverview,
   getKPIs,
   getRecentActivity,
 };

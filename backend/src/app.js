@@ -24,7 +24,6 @@ const maintenanceRoutes = require('./routes/maintenance.routes');
 const auditCycleRoutes    = require('./routes/auditCycle.routes');
 const auditItemRoutes     = require('./routes/auditItem.routes');
 const notificationRoutes  = require('./routes/notification.routes');
-const dashboardRoutes     = require('./routes/dashboard.routes');
 const activityLogRoutes   = require('./routes/activityLog.routes');
 
 
@@ -59,7 +58,6 @@ function createApp() {
   app.use('/api/v1/audit-cycles',    auditCycleRoutes);
   app.use('/api/v1/audit-items',     auditItemRoutes);
   app.use('/api/v1/notifications',   notificationRoutes);
-  app.use('/api/v1/dashboard',       dashboardRoutes);
   app.use('/api/v1/activity-logs',   activityLogRoutes);
 
   // --- Fallbacks (must be last) ---

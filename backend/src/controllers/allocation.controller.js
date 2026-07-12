@@ -18,7 +18,6 @@ const createAllocation = asyncHandler(async (req, res) => {
     allocatedToDepartmentId,
     expectedReturnDate,
   }, req.user);
-  });
 
   // ── Side effects (best-effort) ────────────────────────────────────────────
   logActivity({
@@ -73,7 +72,6 @@ const returnAllocation = asyncHandler(async (req, res) => {
   const allocation = await allocationService.returnAllocation(req.params.id, {
     conditionNoteOnReturn,
   }, req.user);
-  });
 
   logActivity({
     userId:     req.user.userId,
@@ -109,7 +107,6 @@ const createTransfer = asyncHandler(async (req, res) => {
     reason,
     requestedById: req.user.userId,
   }, req.user);
-  });
 
   logActivity({
     userId:     req.user.userId,
@@ -160,7 +157,6 @@ const getTransferById = asyncHandler(async (req, res) => {
  */
 const approveTransfer = asyncHandler(async (req, res) => {
   const result = await allocationService.approveTransfer(req.params.id, req.user.userId, req.user);
-  const result = await allocationService.approveTransfer(req.params.id, req.user.userId);
 
   logActivity({
     userId:     req.user.userId,
@@ -187,7 +183,6 @@ const approveTransfer = asyncHandler(async (req, res) => {
  */
 const rejectTransfer = asyncHandler(async (req, res) => {
   const transfer = await allocationService.rejectTransfer(req.params.id, req.user.userId, req.user);
-  const transfer = await allocationService.rejectTransfer(req.params.id, req.user.userId);
 
   logActivity({
     userId:     req.user.userId,

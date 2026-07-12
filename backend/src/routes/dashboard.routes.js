@@ -1,25 +1,22 @@
 const express = require('express');
+const { query } = require('express-validator');
 
 const dashboardController = require('../controllers/dashboard.controller');
 const { authenticate } = require('../middleware/auth');
 const { requireTenantScope } = require('../middleware/tenantScope');
 const { requirePermission } = require('../utils/permissions');
+const validate = require('../middleware/validate');
 
 const router = express.Router();
 
+// GET /api/v1/dashboard — get overview stats (scoped)
 router.get(
   '/',
   authenticate,
   requireTenantScope,
   requirePermission('dashboard:view'),
   dashboardController.getOverview,
-const { query } = require('express-validator');
-
-const dashboardController = require('../controllers/dashboard.controller');
-const { authenticate } = require('../middleware/auth');
-const validate = require('../middleware/validate');
-
-const router = express.Router();
+);
 
 /**
  * GET /api/v1/dashboard/kpis

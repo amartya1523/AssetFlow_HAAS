@@ -61,7 +61,7 @@ async function getOverview(organizationId, paginationOptions = {}) {
   };
 }
 
-module.exports = { getOverview };
+
 
 // ─── Dashboard Service ────────────────────────────────────────────────────────
 
@@ -164,6 +164,7 @@ async function getRecentActivity({ limit = 20 } = {}) {
 }
 
 module.exports = {
+  getOverview,
   getDashboardKPIs,
   getRecentActivity,
 };
