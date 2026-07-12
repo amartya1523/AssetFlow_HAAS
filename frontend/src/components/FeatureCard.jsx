@@ -11,7 +11,7 @@ const features = [
   },
   {
     iconName: 'RefreshCw',
-    title: 'Conflict-Free Allocation & Transfers',
+    title: 'Conflict-Free Allocation',
     description: 'Ensure smooth checkouts and custodian transfers between departments without duplicate assignments.',
   },
   {
@@ -21,7 +21,7 @@ const features = [
   },
   {
     iconName: 'ClipboardCheck',
-    title: 'Maintenance Approval Workflow',
+    title: 'Maintenance Workflow',
     description: 'Allow employees to report issues, assign technical service teams, track costs, and get approvals within the platform.',
   },
   {
@@ -31,7 +31,7 @@ const features = [
   },
   {
     iconName: 'LayoutDashboard',
-    title: 'Real-Time Dashboard & Notifications',
+    title: 'Real-Time Insights & Alerting',
     description: 'Get instant notifications for overdue returns, pending approvals, and track high-level key performance metrics.',
   },
 ];
@@ -46,11 +46,16 @@ export function FeatureCard({ iconName, title, description, index }) {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: index * 0.1 }}
-      whileHover={{ y: -6, boxShadow: '0 12px 30px rgba(99, 102, 241, 0.12)' }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: index * 0.08 }}
+      whileHover={{ 
+        y: -8, 
+        borderColor: 'rgba(99, 102, 241, 0.4)',
+        boxShadow: '0 20px 40px rgba(99, 102, 241, 0.12)'
+      }}
     >
+      <div className={styles.glowOverlay} />
       <div className={styles.iconWrapper}>
-        <IconComponent className={styles.icon} size={24} />
+        <IconComponent className={styles.icon} size={22} />
       </div>
       <h3 className={styles.title}>{title}</h3>
       <p className={styles.description}>{description}</p>
@@ -71,7 +76,7 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            Modules
+            Capabilities
           </motion.span>
           <motion.h2
             className={styles.mainTitle}
@@ -80,7 +85,7 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Everything you need to govern resources
+            Engineered for complete resource control
           </motion.h2>
           <motion.p
             className={styles.subtitle}
@@ -89,7 +94,7 @@ export default function FeaturesSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            Replace chaotic spreadsheets and static documentation. Gain complete visibility over your organizational items.
+            Ditch complex spreadsheets and static paperwork. Gain immediate transparency over every device, asset, and facility.
           </motion.p>
         </div>
 

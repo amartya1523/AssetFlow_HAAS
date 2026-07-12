@@ -44,7 +44,7 @@ export default function TopBar() {
         <button
           type="button"
           className={styles.iconBtn}
-          onClick={() => navigate('/app/notifications')}
+          onClick={() => navigate('/notifications')}
           aria-label="Notifications"
           title="Notifications"
         >

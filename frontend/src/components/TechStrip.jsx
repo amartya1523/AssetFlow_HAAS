@@ -2,13 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import styles from './TechStrip.module.css';
 
-const techs = [
-  { name: 'React', color: '#61dafb' },
-  { name: 'Node.js', color: '#339933' },
-  { name: 'Express', color: '#000000' },
-  { name: 'Prisma ORM', color: '#2d3748' },
-  { name: 'PostgreSQL', color: '#4169e1' },
-  { name: 'Framer Motion', color: '#ff007f' },
+const securityFeatures = [
+  { name: 'SOC 2 Type II Ready', color: '#10b981' },
+  { name: 'ISO 27001 Aligned', color: '#6366f1' },
+  { name: 'GDPR Compliant', color: '#f59e0b' },
+  { name: 'TLS 1.3 Encryption', color: '#3b82f6' },
+  { name: 'AES-256 Data Rest', color: '#ec4899' },
+  { name: '99.9% Uptime SLA', color: '#14b8a6' },
 ];
 
 export default function TechStrip() {
@@ -22,22 +22,27 @@ export default function TechStrip() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          POWERED BY ENTERPRISE TECH STACK
+          ENTERPRISE-GRADE SECURITY & COMPLIANCE GUARDS
         </motion.span>
         
         <div className={styles.strip}>
-          {techs.map((tech, i) => (
+          {securityFeatures.map((feat, i) => (
             <motion.div
-              key={tech.name}
+              key={feat.name}
               className={styles.badge}
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              whileHover={{ scale: 1.05, borderColor: 'rgba(99, 102, 241, 0.4)' }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+              whileHover={{ 
+                scale: 1.05, 
+                y: -2,
+                borderColor: 'rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 0 20px rgba(99, 102, 241, 0.15)'
+              }}
             >
-              <span className={styles.dot} style={{ backgroundColor: tech.color }} />
-              <span className={styles.name}>{tech.name}</span>
+              <span className={styles.dot} style={{ backgroundColor: feat.color }} />
+              <span className={styles.name}>{feat.name}</span>
             </motion.div>
           ))}
         </div>

@@ -1,9 +1,11 @@
 .footer {
-  background-color: #0b0f19;
+  background-color: #030712;
   padding: 5rem 2rem 3rem 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 5;
 }
 
 .container {
@@ -26,22 +28,17 @@
 }
 
 .logo {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
-  font-family: 'Outfit', 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1.25rem;
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 0.65rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  object-fit: cover;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .logoText {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Sora', 'Outfit', sans-serif;
   font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
@@ -68,10 +65,10 @@
 }
 
 .groupTitle {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Sora', 'Outfit', sans-serif;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #f3f4f6;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
@@ -86,7 +83,7 @@
 }
 
 .link:hover {
-  color: #6366f1;
+  color: #818cf8;
 }
 
 .bottom {
@@ -118,7 +115,7 @@
 }
 
 .metaLink:hover {
-  color: #94a3b8;
+  color: #ffffff;
 }
 
 @media (max-width: 1024px) {

@@ -43,7 +43,7 @@ export default function Login() {
       const res = await authAPI.login(form);
       const { user, token } = res.data.data;
       setAuth(user, token);
-      navigate('/app/dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Unable to sign in. Try again.');
     } finally {

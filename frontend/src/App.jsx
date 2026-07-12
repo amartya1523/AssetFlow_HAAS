@@ -26,14 +26,14 @@ function PublicOnlyRoute() {
     return null;
   }
 
-  return token ? <Navigate to="/app/dashboard" replace /> : <Outlet />;
+  return token ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
 
 function RoleProtectedRoute({ allowedRoles }) {
   const role = useAuthStore((state) => state.user?.role);
 
   if (!role || !allowedRoles.includes(role)) {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;
@@ -59,22 +59,21 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
 
+          <Route path="/signup" element={<Signup />} />
+
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           <Route
-            path="/app"
             element={(
               <RequireAuth>
                 <AppLayout />
               </RequireAuth>
             )}
           >
-            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="assets" element={<Assets />} />
             <Route path="assets/:id" element={<AssetDetail />} />
