@@ -28,6 +28,37 @@
   margin-top: var(--space-xs);
 }
 
+.errorBanner,
+.loadingCard,
+.emptyPanel {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  font-size: 0.88rem;
+}
+
+.errorBanner {
+  background: var(--color-danger-bg);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.loadingCard,
+.emptyPanel {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.emptyPanel {
+  margin-top: auto;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 /* ── Card Shell ───────────────────────────────────────────────────────── */
 .card {
   background: var(--color-surface);
