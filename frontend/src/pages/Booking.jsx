@@ -334,10 +334,10 @@ export default function Booking() {
         name: resourceForm.name.trim(),
         categoryId: resourceForm.categoryId,
         departmentId: resourceForm.departmentId || null,
-        serialNumber: resourceForm.serialNumber.trim() || null,
+        serialNumber: null,
         location: resourceForm.location.trim() || null,
-        condition: resourceForm.condition.trim() || null,
-        photoUrl: resourceForm.photoUrl.trim() || null,
+        condition: 'New',
+        photoUrl: null,
         isBookable: true,
       });
 
@@ -780,37 +780,9 @@ export default function Booking() {
               onChange={onResourceFormChange}
               appearance="surface"
             />
-            <Input
-              id="resource-condition"
-              name="condition"
-              label="Condition"
-              placeholder="e.g. Good"
-              value={resourceForm.condition}
-              onChange={onResourceFormChange}
-              appearance="surface"
-            />
-            <Input
-              id="resource-serial"
-              name="serialNumber"
-              label="Serial Number"
-              placeholder="Optional"
-              value={resourceForm.serialNumber}
-              onChange={onResourceFormChange}
-              appearance="surface"
-            />
-            <Input
-              id="resource-photo"
-              name="photoUrl"
-              label="Photo URL"
-              placeholder="https://example.com/resource.jpg"
-              value={resourceForm.photoUrl}
-              onChange={onResourceFormChange}
-              error={resourceErrors.photoUrl}
-              appearance="surface"
-            />
           </div>
 
-          <p className={styles.resourceHint}>New resource automatically bookable resource ke roop mein save hoga.</p>
+          <p className={styles.resourceHint}>New resource will automatically be saved as a bookable resource.</p>
 
           {resourceMessage && (
             <div className={styles.errorText}>
