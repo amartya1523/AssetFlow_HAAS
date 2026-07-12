@@ -7,6 +7,11 @@ const getOverview = asyncHandler(async (req, res) => {
   return sendSuccess(res, { data });
 });
 
+
+/**
+ * GET /api/v1/dashboard/kpis
+ * Returns all KPIs needed for the dashboard in one call.
+ */
 const getKPIs = asyncHandler(async (req, res) => {
   const data = await dashboardService.getDashboardKPIs(req.tenant.organizationId);
   return sendSuccess(res, { data });

@@ -9,6 +9,7 @@ const { requirePermission } = require('../utils/permissions');
 
 const router = express.Router();
 
+// GET /api/v1/dashboard — get overview stats (scoped)
 router.get(
   '/',
   authenticate,
@@ -17,6 +18,10 @@ router.get(
   dashboardController.getOverview,
 );
 
+/**
+ * GET /api/v1/dashboard/kpis
+ * Returns all KPI numbers for the dashboard. All authenticated users.
+ */
 router.get(
   '/kpis',
   authenticate,
