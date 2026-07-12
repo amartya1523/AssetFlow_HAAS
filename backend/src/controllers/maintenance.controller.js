@@ -1,6 +1,9 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const maintenanceService = require('../services/maintenance.service');
+const { logActivity } = require('../services/activityLog.service');
+const notificationService = require('../services/notification.service');
+const prisma = require('../config/prisma');
 
 /**
  * POST /api/v1/maintenance
@@ -15,6 +18,25 @@ const createRequest = asyncHandler(async (req, res) => {
     priority,
     photoUrl,
   });
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'MAINTENANCE_RAISED',
+    entityType: 'MaintenanceRequest',
+    entityId:   request.id,
+    metadata:   { assetId, issueDescription, priority },
+  });
+  // Notify all ASSET_MANAGER and ADMIN users
+  const managers = await prisma.user.findMany({
+    where: { role: { in: ['ASSET_MANAGER', 'ADMIN'] } },
+    select: { id: true },
+  });
+  notificationService.notifyMaintenanceRaised({
+    managerUserIds:   managers.map((m) => m.id),
+    assetTag:         request.asset?.assetTag,
+    issueDescription: issueDescription?.slice(0, 100),
+  });
+
   return sendCreated(res, request);
 });
 
@@ -33,6 +55,19 @@ const listRequests = asyncHandler(async (req, res) => {
  */
 const approveRequest = asyncHandler(async (req, res) => {
   const request = await maintenanceService.approveRequest(req.params.id, req.user.userId);
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'MAINTENANCE_APPROVED',
+    entityType: 'MaintenanceRequest',
+    entityId:   request.id,
+    metadata:   { assetId: request.assetId },
+  });
+  notificationService.notifyMaintenanceApproved({
+    raisedById: request.raisedById,
+    assetTag:   request.asset?.assetTag,
+  });
+
   return sendSuccess(res, { data: request, message: 'Maintenance request approved' });
 });
 
@@ -43,6 +78,20 @@ const approveRequest = asyncHandler(async (req, res) => {
 const rejectRequest = asyncHandler(async (req, res) => {
   const { rejectionReason } = req.body;
   const request = await maintenanceService.rejectRequest(req.params.id, req.user.userId, rejectionReason);
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'MAINTENANCE_REJECTED',
+    entityType: 'MaintenanceRequest',
+    entityId:   request.id,
+    metadata:   { assetId: request.assetId, rejectionReason },
+  });
+  notificationService.notifyMaintenanceRejected({
+    raisedById:      request.raisedById,
+    assetTag:        request.asset?.assetTag,
+    rejectionReason,
+  });
+
   return sendSuccess(res, { data: request, message: 'Maintenance request rejected' });
 });
 
@@ -69,6 +118,19 @@ const startMaintenance = asyncHandler(async (req, res) => {
  */
 const resolveMaintenance = asyncHandler(async (req, res) => {
   const request = await maintenanceService.resolveMaintenance(req.params.id);
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'MAINTENANCE_RESOLVED',
+    entityType: 'MaintenanceRequest',
+    entityId:   request.id,
+    metadata:   { assetId: request.assetId },
+  });
+  notificationService.notifyMaintenanceResolved({
+    raisedById: request.raisedById,
+    assetTag:   request.asset?.assetTag,
+  });
+
   return sendSuccess(res, { data: request, message: 'Maintenance resolved successfully' });
 });
 

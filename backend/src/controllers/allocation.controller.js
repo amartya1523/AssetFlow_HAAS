@@ -1,6 +1,8 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendCreated } = require('../utils/apiResponse');
 const allocationService = require('../services/allocation.service');
+const { logActivity } = require('../services/activityLog.service');
+const notificationService = require('../services/notification.service');
 
 // ─── Allocations ─────────────────────────────────────────────────────────────
 
@@ -16,6 +18,23 @@ const createAllocation = asyncHandler(async (req, res) => {
     allocatedToDepartmentId,
     expectedReturnDate,
   });
+
+  // ── Side effects (best-effort) ────────────────────────────────────────────
+  logActivity({
+    userId:     req.user.userId,
+    action:     'ASSET_ALLOCATED',
+    entityType: 'Allocation',
+    entityId:   allocation.id,
+    metadata:   { assetId, allocatedToUserId, allocatedToDepartmentId },
+  });
+  if (allocatedToUserId) {
+    notificationService.notifyAssetAllocated({
+      toUserId:  allocatedToUserId,
+      assetTag:  allocation.asset?.assetTag,
+      assetName: allocation.asset?.name,
+    });
+  }
+
   return sendCreated(res, allocation);
 });
 
@@ -53,6 +72,22 @@ const returnAllocation = asyncHandler(async (req, res) => {
   const allocation = await allocationService.returnAllocation(req.params.id, {
     conditionNoteOnReturn,
   });
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'ASSET_RETURNED',
+    entityType: 'Allocation',
+    entityId:   allocation.id,
+    metadata:   { assetId: allocation.assetId, conditionNoteOnReturn },
+  });
+  if (allocation.allocatedToUser?.id) {
+    notificationService.notifyAssetReturned({
+      toUserId:  allocation.allocatedToUser.id,
+      assetTag:  allocation.asset?.assetTag,
+      assetName: allocation.asset?.name,
+    });
+  }
+
   return sendSuccess(res, { data: allocation, message: 'Asset returned successfully' });
 });
 
@@ -72,6 +107,22 @@ const createTransfer = asyncHandler(async (req, res) => {
     reason,
     requestedById: req.user.userId,
   });
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'TRANSFER_REQUESTED',
+    entityType: 'Transfer',
+    entityId:   transfer.id,
+    metadata:   { assetId, fromUserId, toUserId, reason },
+  });
+  if (fromUserId) {
+    notificationService.notifyTransferRequested({
+      toUserId:  fromUserId,
+      assetTag:  transfer.asset?.assetTag,
+      reason,
+    });
+  }
+
   return sendCreated(res, transfer);
 });
 
@@ -106,6 +157,20 @@ const getTransferById = asyncHandler(async (req, res) => {
  */
 const approveTransfer = asyncHandler(async (req, res) => {
   const result = await allocationService.approveTransfer(req.params.id, req.user.userId);
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'TRANSFER_APPROVED',
+    entityType: 'Transfer',
+    entityId:   result.transfer?.id,
+    metadata:   { assetId: result.transfer?.assetId },
+  });
+  notificationService.notifyTransferApproved({
+    fromUserId: result.transfer?.fromUserId,
+    toUserId:   result.transfer?.toUserId,
+    assetTag:   result.transfer?.asset?.assetTag,
+  });
+
   return sendSuccess(res, {
     data: result,
     message: 'Transfer approved and asset re-allocated',
@@ -118,6 +183,19 @@ const approveTransfer = asyncHandler(async (req, res) => {
  */
 const rejectTransfer = asyncHandler(async (req, res) => {
   const transfer = await allocationService.rejectTransfer(req.params.id, req.user.userId);
+
+  logActivity({
+    userId:     req.user.userId,
+    action:     'TRANSFER_REJECTED',
+    entityType: 'Transfer',
+    entityId:   transfer.id,
+    metadata:   { assetId: transfer.assetId },
+  });
+  notificationService.notifyTransferRejected({
+    requestedById: transfer.requestedById,
+    assetTag:      transfer.asset?.assetTag,
+  });
+
   return sendSuccess(res, { data: transfer, message: 'Transfer request rejected' });
 });
 
