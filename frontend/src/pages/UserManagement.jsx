@@ -308,14 +308,14 @@ export default function UserManagement() {
         title={editingUser ? 'Edit user' : 'Add user'}
       >
         <form className={styles.formGrid} onSubmit={submitUser}>
-          <Input id="name" name="name" label="Name" value={form.name || ''} onChange={onChange} error={formErrors.name} />
+          <Input id="name" name="name" label="Name" value={form.name || ''} onChange={onChange} error={formErrors.name} appearance="surface" />
           {!editingUser && (
             <>
-              <Input id="email" name="email" label="Email" type="email" value={form.email || ''} onChange={onChange} error={formErrors.email} />
-              <Input id="password" name="password" label="Temporary password" type="password" value={form.password || ''} onChange={onChange} error={formErrors.password} placeholder="Generated if blank" />
+              <Input id="email" name="email" label="Email" type="email" value={form.email || ''} onChange={onChange} error={formErrors.email} appearance="surface" />
+              <Input id="password" name="password" label="Temporary password" type="password" value={form.password || ''} onChange={onChange} error={formErrors.password} placeholder="Generated if blank" appearance="surface" />
             </>
           )}
-          <Input id="phone" name="phone" label="Phone" value={form.phone || ''} onChange={onChange} />
+          <Input id="phone" name="phone" label="Phone" value={form.phone || ''} onChange={onChange} appearance="surface" />
           <Select id="role" name="role" label="Role" value={form.role || 'EMPLOYEE'} onChange={onChange} options={ROLES.map((role) => ({ value: role, label: roleLabel(role) }))} />
           <Select id="status" name="status" label="Status" value={form.status || 'ACTIVE'} onChange={onChange} options={STATUSES} />
           <Select
