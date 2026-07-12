@@ -1,22 +1,20 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { AlertCircle } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-  Package,
-  ArrowLeftRight,
-  Wrench,
-  CalendarClock,
-  Send,
-  AlertTriangle,
-  RotateCcw,
   Activity,
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeftRight,
+  CalendarClock,
   ChevronRight,
-  Plus,
-  TrendingUp,
   Clock,
+  Package,
+  Plus,
+  RotateCcw,
+  Send,
+  TrendingUp,
+  Wrench,
 } from 'lucide-react';
 import { dashboardAPI } from '../api/dashboard';
 import useAuthStore from '../context/authStore';
@@ -40,8 +38,6 @@ function formatDateTime(value) {
   });
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function fmtRelative(iso) {
   if (!iso) return '—';
   const diff = Date.now() - new Date(iso).getTime();
@@ -53,23 +49,19 @@ function fmtRelative(iso) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
 function Skeleton({ rows = 3, height = 18 }) {
   return (
     <div className={styles.skeletonWrap}>
-      {Array.from({ length: rows }).map((_, i) => (
+      {Array.from({ length: rows }).map((_, index) => (
         <div
-          key={i}
+          key={index}
           className={styles.skeletonRow}
-          style={{ width: `${88 - i * 10}%`, height }}
+          style={{ width: `${88 - index * 10}%`, height }}
         />
       ))}
     </div>
   );
 }
-
-// ─── KPI card ─────────────────────────────────────────────────────────────────
 
 function KpiCard({ label, value, icon: Icon, color, sub, delay = 0, loading }) {
   return (
@@ -95,27 +87,26 @@ function KpiCard({ label, value, icon: Icon, color, sub, delay = 0, loading }) {
   );
 }
 
-// ─── Activity row ─────────────────────────────────────────────────────────────
-
 const ACTION_ICON = {
-  ASSET_ALLOCATED:       { icon: Package,        color: 'blue'   },
-  ASSET_RETURNED:        { icon: RotateCcw,      color: 'green'  },
-  BOOKING_CREATED:       { icon: CalendarClock,  color: 'purple' },
-  BOOKING_CANCELLED:     { icon: CalendarClock,  color: 'red'    },
-  BOOKING_RESCHEDULED:   { icon: CalendarClock,  color: 'amber'  },
-  TRANSFER_REQUESTED:    { icon: ArrowLeftRight, color: 'amber'  },
-  TRANSFER_APPROVED:     { icon: ArrowLeftRight, color: 'green'  },
-  TRANSFER_REJECTED:     { icon: ArrowLeftRight, color: 'red'    },
-  MAINTENANCE_RAISED:    { icon: Wrench,         color: 'amber'  },
-  MAINTENANCE_APPROVED:  { icon: Wrench,         color: 'green'  },
-  MAINTENANCE_REJECTED:  { icon: Wrench,         color: 'red'    },
-  MAINTENANCE_RESOLVED:  { icon: Wrench,         color: 'blue'   },
-  AUDIT_CYCLE_CREATED:   { icon: Activity,       color: 'purple' },
+  ASSET_ALLOCATED: { icon: Package, color: 'blue' },
+  ASSET_RETURNED: { icon: RotateCcw, color: 'green' },
+  BOOKING_CREATED: { icon: CalendarClock, color: 'purple' },
+  BOOKING_CANCELLED: { icon: CalendarClock, color: 'red' },
+  BOOKING_RESCHEDULED: { icon: CalendarClock, color: 'amber' },
+  TRANSFER_REQUESTED: { icon: ArrowLeftRight, color: 'amber' },
+  TRANSFER_APPROVED: { icon: ArrowLeftRight, color: 'green' },
+  TRANSFER_REJECTED: { icon: ArrowLeftRight, color: 'red' },
+  MAINTENANCE_RAISED: { icon: Wrench, color: 'amber' },
+  MAINTENANCE_APPROVED: { icon: Wrench, color: 'green' },
+  MAINTENANCE_REJECTED: { icon: Wrench, color: 'red' },
+  MAINTENANCE_RESOLVED: { icon: Wrench, color: 'blue' },
+  AUDIT_CYCLE_CREATED: { icon: Activity, color: 'purple' },
 };
 
 function ActivityRow({ log, index }) {
   const meta = ACTION_ICON[log.action] || { icon: Activity, color: 'blue' };
   const { icon: Icon } = meta;
+
   return (
     <motion.div
       className={styles.activityRow}
@@ -128,13 +119,9 @@ function ActivityRow({ log, index }) {
       </div>
       <div className={styles.activityContent}>
         <span className={styles.activityAction}>
-          {log.action.replace(/_/g, ' ')}
+          {formatActivityAction(log.action)}
         </span>
-        {log.user && (
-          <span className={styles.activityUser}>
-            by {log.user.name}
-          </span>
-        )}
+        {log.user && <span className={styles.activityUser}>by {log.user.name}</span>}
       </div>
       <span className={styles.activityTime}>
         <Clock size={11} /> {fmtRelative(log.createdAt)}
@@ -143,61 +130,48 @@ function ActivityRow({ log, index }) {
   );
 }
 
-// ─── Quick Action Button ──────────────────────────────────────────────────────
-
 function QuickAction({ icon: Icon, label, to, color }) {
   const navigate = useNavigate();
+
   return (
     <button
       className={`${styles.quickAction} ${styles[`qa_${color}`]}`}
       onClick={() => navigate(to)}
+      type="button"
     >
-      <div className={styles.qaIcon}><Icon size={20} /></div>
+      <div className={styles.qaIcon}>
+        <Icon size={20} />
+      </div>
       <span>{label}</span>
       <ChevronRight size={14} className={styles.qaArrow} />
     </button>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function Dashboard() {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
   const firstName = user?.name?.trim()?.split(/\s+/)[0] || 'User';
+
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-
-    dashboardAPI.overview()
-      .then((res) => {
-        if (!cancelled) setOverview(res.data.data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.response?.data?.message || 'Failed to load dashboard data');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, []);
-
-  const stats = overview?.stats || {};
-
-  const cards = [
-    { label: 'Total Assets', value: stats.totalAssets, color: 'blue' },
-    { label: 'Active Allocations', value: stats.activeAllocations, color: 'purple' },
-    { label: 'Pending Requests', value: stats.pendingRequests, color: 'amber' },
-    { label: 'Maintenance Due', value: stats.maintenanceDue, color: 'rose' },
   const [kpis, setKpis] = useState(null);
   const [activity, setActivity] = useState([]);
   const [kpisLoading, setKpisLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(true);
+
+  const loadOverview = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await dashboardAPI.overview();
+      setOverview(res.data.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const loadKPIs = useCallback(async () => {
     setKpisLoading(true);
@@ -224,11 +198,13 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    loadOverview();
     loadKPIs();
     loadActivity();
-  }, [loadKPIs, loadActivity]);
+  }, [loadOverview, loadKPIs, loadActivity]);
 
-  const isOverdue = kpis?.overdueAllocations > 0;
+  const isOverdue = (kpis?.overdueAllocations ?? 0) > 0;
+  const recentOverviewActivity = overview?.recentActivity || [];
 
   const kpiCards = [
     {
@@ -270,7 +246,6 @@ export default function Dashboard() {
       sub: 'next 7 days',
     },
   ];
-  const recentActivity = overview?.recentActivity || [];
 
   const todayLabel = new Date().toLocaleDateString('en-IN', {
     weekday: 'long',
@@ -279,23 +254,26 @@ export default function Dashboard() {
     year: 'numeric',
   });
 
+  const refreshDashboard = () => {
+    loadOverview();
+    loadKPIs();
+    loadActivity();
+  };
+
   return (
     <div className={styles.page}>
-      {/* Greeting header */}
       <motion.div
         className={styles.greeting}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div>
-          <h2 className={styles.greetingTitle}>
-            Today&apos;s Overview
-          </h2>
+          <h2 className={styles.greetingTitle}>Today&apos;s Overview</h2>
           <p className={styles.greetingSubtitle}>
             Welcome back, <strong>{firstName}</strong> · {todayLabel}
           </p>
         </div>
-        <button className={styles.refreshBtn} onClick={() => { loadKPIs(); loadActivity(); }}>
+        <button className={styles.refreshBtn} onClick={refreshDashboard} type="button">
           <RotateCcw size={14} />
         </button>
       </motion.div>
@@ -307,9 +285,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className={styles.kpiGrid}>
-        {cards.map((c, i) => (
-      {/* Overdue alert banner */}
       <AnimatePresence>
         {isOverdue && !kpisLoading && (
           <motion.div
@@ -318,46 +293,74 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
           >
-            <span className={styles.kpiLabel}>{c.label}</span>
-            <span className={styles.kpiValue}>{loading ? '...' : c.value ?? 0}</span>
             <AlertTriangle size={17} />
             <span>
               <strong>{kpis.overdueAllocations}</strong> allocation
-              {kpis.overdueAllocations > 1 ? 's are' : ' is'} overdue — review in Allocation &amp; Transfer.
+              {kpis.overdueAllocations > 1 ? 's are' : ' is'} overdue. Review in
+              {' '}
+              Allocation &amp; Transfer.
             </span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* KPI grid */}
       <div className={styles.kpiGrid}>
-        {kpiCards.map((card, i) => (
+        {kpiCards.map((card, index) => (
           <KpiCard
             key={card.label}
             {...card}
-            delay={i * 0.06}
+            delay={index * 0.06}
             loading={kpisLoading}
           />
         ))}
       </div>
 
-      {/* Quick actions */}
       <motion.div
         className={styles.quickActionsSection}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h3 className={styles.sectionTitle}>Recent Activity</h3>
+        <h3 className={styles.sectionTitle}>Quick Actions</h3>
+        <div className={styles.quickActions}>
+          <QuickAction icon={Plus} label="Register Asset" to="/app/assets" color="blue" />
+          <QuickAction
+            icon={CalendarClock}
+            label="Book Resource"
+            to="/app/booking"
+            color="purple"
+          />
+          <QuickAction
+            icon={Wrench}
+            label="Raise Request"
+            to="/app/maintenance"
+            color="amber"
+          />
+        </div>
+      </motion.div>
+
+      <motion.div
+        className={styles.activityCard}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33 }}
+      >
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>Overview Activity</h3>
+        </div>
+
         {loading ? (
+          <Skeleton rows={4} height={20} />
+        ) : recentOverviewActivity.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>Loading activity...</p>
+            <Activity size={36} />
+            <p>No activity yet. Data will appear as your organization starts using AssetFlow.</p>
           </div>
-        ) : recentActivity.length > 0 ? (
-          <div className={styles.activityList}>
-            {recentActivity.map((entry) => (
-              <div key={entry.id} className={styles.activityItem}>
-                <div className={styles.activityDot} />
+        ) : (
+          <div className={styles.overviewActivityList}>
+            {recentOverviewActivity.map((entry) => (
+              <div key={entry.id} className={styles.overviewActivityItem}>
+                <div className={styles.overviewActivityDot} />
                 <div>
                   <strong>{formatActivityAction(entry.action)}</strong>
                   <p>
@@ -369,19 +372,9 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <p>No activity yet. Data will appear as your organization starts using AssetFlow.</p>
-          </div>
-        <h3 className={styles.sectionTitle}>Quick Actions</h3>
-        <div className={styles.quickActions}>
-          <QuickAction icon={Plus}          label="Register Asset"   to="/app/assets"      color="blue"   />
-          <QuickAction icon={CalendarClock} label="Book Resource"    to="/app/booking"     color="purple" />
-          <QuickAction icon={Wrench}        label="Raise Request"    to="/app/maintenance" color="amber"  />
-        </div>
+        )}
       </motion.div>
 
-      {/* Recent activity */}
       <motion.div
         className={styles.activityCard}
         initial={{ opacity: 0, y: 8 }}
@@ -402,12 +395,12 @@ export default function Dashboard() {
         ) : activity.length === 0 ? (
           <div className={styles.emptyState}>
             <Activity size={36} />
-            <p>No activity yet — data will appear as your team uses AssetFlow.</p>
+            <p>No activity yet. Data will appear as your team uses AssetFlow.</p>
           </div>
         ) : (
           <div className={styles.activityList}>
-            {activity.map((log, i) => (
-              <ActivityRow key={log.id} log={log} index={i} />
+            {activity.map((log, index) => (
+              <ActivityRow key={log.id} log={log} index={index} />
             ))}
           </div>
         )}

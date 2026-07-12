@@ -84,11 +84,9 @@ export default function Home() {
             <span className={styles.navLogoText}>AssetFlow</span>
           </div>
           <div className={styles.navActions}>
-            {/* Sign In → /dashboard if already logged in, else /login */}
-            <Link to={token ? '/dashboard' : '/login'} className={styles.loginLink}>
+            <Link to={token ? '/app/dashboard' : '/login'} className={styles.loginLink}>
               {token ? 'Go to Dashboard' : 'Sign In'}
             </Link>
-            {/* Get Started → always /signup */}
             <Link to="/signup">
               <button className={styles.navButton}>Get Started</button>
             </Link>

@@ -346,12 +346,16 @@
   font-size: 0.92rem;
 }
 
-.activityList {
+.emptyState svg {
+  opacity: 0.3;
+}
+
+.overviewActivityList {
   display: grid;
   gap: var(--space-xs);
 }
 
-.activityItem {
+.overviewActivityItem {
   display: grid;
   grid-template-columns: 12px 1fr auto;
   align-items: center;
@@ -360,44 +364,42 @@
   border-bottom: 1px solid var(--color-border-light);
 }
 
-.activityItem:last-child {
+.overviewActivityItem:last-child {
   border-bottom: none;
 }
 
-.activityDot {
+.overviewActivityDot {
   width: 8px;
   height: 8px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
 }
 
-.activityItem strong {
+.overviewActivityItem strong {
   color: var(--color-text);
   font-size: 0.92rem;
 }
 
-.activityItem p {
+.overviewActivityItem p {
   margin: 2px 0 0;
   color: var(--color-text-secondary);
   font-size: 0.84rem;
 }
 
-.activityItem span {
+.overviewActivityItem span {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   white-space: nowrap;
 }
 
 @media (max-width: 640px) {
-  .activityItem {
+  .overviewActivityItem {
     grid-template-columns: 12px 1fr;
   }
 
-  .activityItem span {
+  .overviewActivityItem span {
     grid-column: 2;
   }
-.emptyState svg {
-  opacity: 0.3;
 }
 
 /* ── Skeleton ─────────────────────────────────────────────────────────── */

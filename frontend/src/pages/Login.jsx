@@ -44,7 +44,6 @@ export default function Login() {
       const { user, token } = res.data.data;
       setAuth(user, token);
       navigate(user.role === 'SUPER_ADMIN' ? '/super-admin' : '/app/dashboard');
-      navigate('/dashboard');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Unable to sign in. Try again.');
     } finally {
