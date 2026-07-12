@@ -2,16 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CalendarClock, X } from 'lucide-react';
 import { bookingAPI } from '../api/booking';
+import { assetAPI } from '../api/assets';
 import useAuthStore from '../context/authStore';
 import Button from '../components/Button';
 import styles from './Booking.module.css';
 
-// ─── Constants & Mock Data ───────────────────────────────────────────────────
-
-const ASSETS = [
-  { id: 'room-b2-uuid', name: 'Room B2', assetTag: 'RM-B2' },
-  { id: 'proj-01-uuid', name: '4K Projector', assetTag: 'PRJ-4K-01' },
-];
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const START_HOUR = 8;
 const END_HOUR = 18;
@@ -34,7 +30,8 @@ function fmtTime(dateIso) {
 export default function Booking() {
   const user = useAuthStore((s) => s.user);
   
-  const [selectedAsset, setSelectedAsset] = useState(ASSETS[0].id);
+  const [assets, setAssets] = useState([]);
+  const [selectedAsset, setSelectedAsset] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
   const [bookings, setBookings] = useState([]);
@@ -48,8 +45,25 @@ export default function Booking() {
   // Modal state
   const [activeModal, setActiveModal] = useState(null); // { type: 'cancel', bookingId: string }
 
+  // Load assets
+  const loadAssets = async () => {
+    try {
+      const res = await assetAPI.list();
+      // Ensure we only show bookable assets
+      const fetchedAssets = (res.data.data || []).filter(a => a.isBookable);
+      setAssets(fetchedAssets);
+      if (fetchedAssets.length > 0 && !selectedAsset) {
+        setSelectedAsset(fetchedAssets[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to load assets", err);
+    }
+  };
+
   // Load bookings
   const loadBookings = async () => {
+    if (!selectedAsset) return;
+    
     setLoading(true);
     try {
       const res = await bookingAPI.list({ assetId: selectedAsset });
@@ -74,7 +88,13 @@ export default function Booking() {
   };
 
   useEffect(() => {
-    loadBookings();
+    loadAssets();
+  }, []);
+
+  useEffect(() => {
+    if (selectedAsset) {
+      loadBookings();
+    }
   }, [selectedAsset, selectedDate]);
 
   // Derived attempted slot
@@ -210,7 +230,7 @@ export default function Booking() {
             value={selectedAsset}
             onChange={(e) => setSelectedAsset(e.target.value)}
           >
-            {ASSETS.map((a) => (
+            {assets.map((a) => (
               <option key={a.id} value={a.id}>{a.name} ({a.assetTag})</option>
             ))}
           </select>
