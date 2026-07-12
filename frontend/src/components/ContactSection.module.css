@@ -25,6 +25,18 @@
   }
 }
 
+@media (max-width: 768px) {
+  .section {
+    padding: 4rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 3rem 1rem;
+  }
+}
+
 /* Left Column Styling */
 .infoCol {
   display: flex;
