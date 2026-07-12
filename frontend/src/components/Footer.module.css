@@ -15,9 +15,9 @@
 
 .top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 4rem;
-  margin-bottom: 4rem;
+  margin-bottom: 2.5rem;
 }
 
 .brand {
@@ -53,46 +53,12 @@
   line-height: 1.4;
 }
 
-.links {
-  display: flex;
-  gap: 5rem;
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.groupTitle {
-  font-family: 'Sora', 'Outfit', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #f3f4f6;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.link {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  color: #94a3b8;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.link:hover {
-  color: #818cf8;
-}
-
 .bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 2rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  gap: 2rem;
 }
 
 .copyright {
@@ -101,27 +67,10 @@
   color: #64748b;
 }
 
-.metaLinks {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.metaLink {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  color: #64748b;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.metaLink:hover {
-  color: #ffffff;
-}
-
 @media (max-width: 1024px) {
   .top {
     flex-direction: column;
-    gap: 3rem;
+    gap: 2rem;
   }
 }
 
@@ -129,13 +78,7 @@
   .footer {
     padding: 4rem 1.5rem 2rem 1.5rem;
   }
-  .links {
-    flex-wrap: wrap;
-    gap: 3rem;
-  }
   .bottom {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    padding-top: 1.5rem;
   }
 }

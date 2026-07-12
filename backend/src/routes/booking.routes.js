@@ -3,16 +3,20 @@ const { body, query, param } = require('express-validator');
 
 const bookingController = require('../controllers/booking.controller');
 const { authenticate } = require('../middleware/auth');
+const { requireTenantScope } = require('../middleware/tenantScope');
 const validate = require('../middleware/validate');
+const { requirePermission } = require('../utils/permissions');
 
 const router = express.Router();
+
+router.use(authenticate, requireTenantScope);
 
 // POST /api/v1/bookings
 router.post(
   '/',
-  authenticate,
+  requirePermission('booking:create'),
   [
-    body('assetId').notEmpty().withMessage('assetId is required'),
+    body('assetId').isUUID().withMessage('assetId must be a valid UUID'),
     body('startTime')
       .isISO8601()
       .withMessage('startTime must be a valid ISO 8601 date'),
@@ -27,8 +31,10 @@ router.post(
 // GET /api/v1/bookings
 router.get(
   '/',
-  authenticate,
+  requirePermission('booking:read'),
   [
+    query('assetId').optional().isUUID().withMessage('assetId must be a valid UUID'),
+    query('bookedById').optional().isUUID().withMessage('bookedById must be a valid UUID'),
     query('status')
       .optional()
       .isIn(['UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'])
@@ -41,8 +47,8 @@ router.get(
 // PUT /api/v1/bookings/:id/cancel
 router.put(
   '/:id/cancel',
-  authenticate,
-  [param('id').notEmpty().withMessage('id is required')],
+  requirePermission('booking:cancel'),
+  [param('id').isUUID().withMessage('id must be a valid UUID')],
   validate,
   bookingController.cancelBooking
 );
@@ -50,9 +56,9 @@ router.put(
 // PUT /api/v1/bookings/:id/reschedule
 router.put(
   '/:id/reschedule',
-  authenticate,
+  requirePermission('booking:cancel'),
   [
-    param('id').notEmpty().withMessage('id is required'),
+    param('id').isUUID().withMessage('id must be a valid UUID'),
     body('startTime')
       .isISO8601()
       .withMessage('startTime must be a valid ISO 8601 date'),

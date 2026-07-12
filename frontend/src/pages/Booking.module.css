@@ -44,6 +44,12 @@
   gap: 4px;
 }
 
+.resourceSelectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .controlLabel {
   font-size: 0.75rem;
   font-weight: 600;
@@ -63,8 +69,38 @@
   min-width: 200px;
 }
 
+.select:disabled, .dateInput:disabled, .timeInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .select:focus, .dateInput:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.addResourceBtn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.addResourceBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.addResourceBtn:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
@@ -100,6 +136,17 @@
   gap: var(--space-md);
   font-size: 0.8rem;
   color: var(--color-text-secondary);
+}
+
+.bannerError {
+  padding: var(--space-sm) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.18);
+  font-size: 0.9rem;
 }
 
 .legendItem {
@@ -148,6 +195,18 @@
   position: relative;
 }
 
+.emptyTimelineState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
 .gridLine {
   position: absolute;
   left: 0;
@@ -176,6 +235,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: all var(--transition-fast);
   cursor: pointer;
+  z-index: 4;
 }
 .bookingBlock:hover {
   transform: scale(1.01);
@@ -221,7 +281,7 @@
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 600;
-  z-index: 5;
+  z-index: 2;
 }
 
 .attemptValid {
@@ -247,6 +307,132 @@
   gap: var(--space-md);
 }
 
+.historyCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.historyTitle {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.historySubtitle {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.historyEmpty {
+  padding: var(--space-lg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  text-align: center;
+  background: var(--color-surface-alt);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+}
+
+.historyMine {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.historyPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyDate {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.historyTime {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.historyMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.historyUser {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.historyStatus {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.historyDeleteBtn {
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.historyDeleteBtn:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+}
+
+.historyDeleteBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+}
+
 .timeInputWrap {
   display: flex;
   align-items: center;
@@ -267,6 +453,15 @@
 
 .errorText {
   color: var(--color-danger);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.successText {
+  color: var(--color-success);
   font-size: 0.85rem;
   font-weight: 500;
   display: flex;
@@ -316,4 +511,109 @@
   justify-content: flex-end;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.modalTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+.resourceModalCard {
+  max-width: 760px;
+}
+
+.resourceModalBody {
+  padding-top: 0;
+}
+
+.resourceForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.resourceFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.resourceHint {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.resourceActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+@media (max-width: 900px) {
+  .controls,
+  .formSection,
+  .historyItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeInputWrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .select,
+  .dateInput,
+  .timeInput {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .resourceSelectRow {
+    width: 100%;
+  }
+
+  .resourceFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .historyMeta {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .timelineHeader,
+  .formSection,
+  .controls {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+  }
+
+  .timelineLegend {
+    flex-wrap: wrap;
+  }
+
+  .timeAxis {
+    width: 64px;
+  }
+
+  .modalContent {
+    margin: var(--space-md);
+    padding: var(--space-lg);
+  }
+
+  .modalTimeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .resourceActions {
+    flex-direction: column;
+  }
 }

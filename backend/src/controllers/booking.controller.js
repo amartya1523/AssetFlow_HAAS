@@ -16,7 +16,7 @@ const createBooking = asyncHandler(async (req, res) => {
     bookedById: req.user.userId,
     startTime,
     endTime,
-  });
+  }, req.user);
 
   logActivity({
     userId:     req.user.userId,
@@ -46,7 +46,7 @@ const listBookings = asyncHandler(async (req, res) => {
     assetId,
     bookedById,
     status,
-  });
+  }, req.user);
   return sendSuccess(res, { data: bookings });
 });
 
@@ -58,7 +58,8 @@ const cancelBooking = asyncHandler(async (req, res) => {
   const booking = await bookingService.cancelBooking(
     req.params.id,
     req.user.userId,
-    req.user.role
+    req.user.role,
+    req.user,
   );
 
   logActivity({
@@ -87,7 +88,8 @@ const rescheduleBooking = asyncHandler(async (req, res) => {
     req.params.id,
     { startTime, endTime },
     req.user.userId,
-    req.user.role
+    req.user.role,
+    req.user,
   );
 
   logActivity({
