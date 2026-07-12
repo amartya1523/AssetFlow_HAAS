@@ -44,7 +44,7 @@ function errorHandler(err, req, res, next) {
   const isOperational = error.isOperational === true || statusCode < 500;
 
   // Always log; full stack only in non-production for server-side debugging
-  if (statusCode >= 500) {
+  if (statusCode >= 500 || err instanceof Prisma.PrismaClientKnownRequestError || err.name?.startsWith('Prisma')) {
     // eslint-disable-next-line no-console
     console.error('[ERROR]', err);
   } else if (config.isDev) {
