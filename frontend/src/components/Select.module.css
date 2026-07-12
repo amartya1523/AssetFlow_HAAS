@@ -4,6 +4,14 @@
   gap: var(--space-xs);
 }
 
+.surfaceField .label {
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.79rem;
+  font-weight: 700;
+}
+
 .label {
   font-size: 0.85rem;
   font-weight: 600;
@@ -36,6 +44,11 @@
 
 .select.error {
   border-color: var(--color-danger);
+}
+
+.surfaceSelect {
+  min-height: 48px;
+  background-color: var(--color-surface);
 }
 
 .errorMsg {

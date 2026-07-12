@@ -183,6 +183,8 @@ function AssetModal({
       open={open}
       onClose={onClose}
       title={mode === 'create' ? 'Register Asset' : 'Edit Asset'}
+      contentClassName={styles.assetModalCard}
+      bodyClassName={styles.assetModalBody}
     >
       <form onSubmit={onSubmit} className={styles.assetForm} noValidate>
         <div className={styles.formGrid}>
@@ -194,6 +196,7 @@ function AssetModal({
             value={form.name}
             onChange={onChange}
             error={formErrors.name}
+            appearance="surface"
           />
 
           <Select
@@ -203,6 +206,7 @@ function AssetModal({
             value={form.categoryId}
             onChange={onChange}
             error={formErrors.categoryId}
+            appearance="surface"
             options={[
               { value: '', label: 'Select category' },
               ...categories.map((category) => ({ value: category.id, label: category.name })),
@@ -215,6 +219,7 @@ function AssetModal({
             label="Department"
             value={form.departmentId}
             onChange={onChange}
+            appearance="surface"
             options={[
               { value: '', label: 'Unassigned' },
               ...departments.map((department) => ({
@@ -231,6 +236,7 @@ function AssetModal({
             placeholder="e.g. SN-44892"
             value={form.serialNumber}
             onChange={onChange}
+            appearance="surface"
           />
 
           <Input
@@ -240,6 +246,7 @@ function AssetModal({
             placeholder="e.g. IT Store - Shelf A"
             value={form.location}
             onChange={onChange}
+            appearance="surface"
           />
 
           <Input
@@ -249,6 +256,7 @@ function AssetModal({
             placeholder="e.g. Good"
             value={form.condition}
             onChange={onChange}
+            appearance="surface"
           />
 
           <Input
@@ -258,6 +266,7 @@ function AssetModal({
             label="Acquisition Date"
             value={form.acquisitionDate}
             onChange={onChange}
+            appearance="surface"
           />
 
           <Input
@@ -270,6 +279,7 @@ function AssetModal({
             placeholder="0.00"
             value={form.acquisitionCost}
             onChange={onChange}
+            appearance="surface"
           />
 
           <label className={styles.checkboxField} htmlFor="asset-bookable">
@@ -300,6 +310,7 @@ function AssetModal({
             value={form.photoUrl}
             onChange={onChange}
             error={formErrors.photoUrl}
+            appearance="surface"
           />
         </div>
 
@@ -315,6 +326,7 @@ function AssetModal({
                   type={field.type === 'number' ? 'number' : 'text'}
                   value={dynamicValues[id] || ''}
                   onChange={(e) => onDynamicChange(id, e.target.value)}
+                  appearance="surface"
                 />
               );
             })}

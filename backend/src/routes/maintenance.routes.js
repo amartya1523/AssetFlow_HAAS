@@ -12,10 +12,17 @@ router.post(
   '/',
   authenticate,
   [
-    body('assetId').notEmpty().withMessage('assetId is required'),
+    body('assetId')
+      .notEmpty()
+      .withMessage('assetId is required')
+      .isUUID()
+      .withMessage('Please select a valid asset'),
     body('issueDescription').notEmpty().withMessage('issueDescription is required'),
-    body('priority').optional().isIn(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']),
-    body('photoUrl').optional().isURL().withMessage('photoUrl must be a valid URL'),
+    body('priority').optional().isIn(['LOW', 'MEDIUM', 'HIGH']),
+    body('photoUrl')
+      .optional({ checkFalsy: true })
+      .isURL()
+      .withMessage('photoUrl must be a valid URL'),
   ],
   validate,
   maintenanceController.createRequest

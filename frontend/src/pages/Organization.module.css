@@ -187,14 +187,26 @@ tbody tr:hover {
 .formGrid {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: 18px;
 }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-sm);
-  margin-top: var(--space-md);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.orgModalCard {
+  width: min(92vw, 560px);
+  max-width: 560px;
+  border: 1px solid var(--color-border-light);
+}
+
+.orgModalBody {
+  padding: var(--space-lg);
 }
 
 /* ─── Error banner in page ───────────────────────────── */
