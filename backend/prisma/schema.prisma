@@ -108,6 +108,8 @@ model User {
   avatarUrl    String?
   role         UserRole @default(EMPLOYEE)
   isActive     Boolean  @default(true)
+  passwordResetToken    String?
+  passwordResetExpiresAt DateTime?
   departmentId String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

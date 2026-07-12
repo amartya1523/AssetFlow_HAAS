@@ -7,6 +7,7 @@ const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
 const healthRoutes = require('./routes/health.routes');
+const authRoutes = require('./routes/auth.routes');
 
 /**
  * Express app factory. Separating app creation from server.listen
@@ -24,6 +25,7 @@ function createApp() {
 
   // --- Routes ---
   app.use('/api/v1/health', healthRoutes);
+  app.use('/api/v1/auth', authRoutes);
 
   // --- Fallbacks (must be last) ---
   app.use(notFound);
