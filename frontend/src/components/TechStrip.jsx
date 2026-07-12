@@ -5,9 +5,9 @@ import styles from './TechStrip.module.css';
 const techs = [
   { name: 'React', color: '#61dafb' },
   { name: 'Node.js', color: '#339933' },
-  { name: 'Express', color: '#000000' },
-  { name: 'Prisma ORM', color: '#2d3748' },
-  { name: 'PostgreSQL', color: '#4169e1' },
+  { name: 'Express', color: '#828282' },
+  { name: 'Prisma ORM', color: '#a5b4fc' },
+  { name: 'PostgreSQL', color: '#336791' },
   { name: 'Framer Motion', color: '#ff007f' },
 ];
 
@@ -22,7 +22,7 @@ export default function TechStrip() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          POWERED BY ENTERPRISE TECH STACK
+          ENGINEERED ON PRODUCTION-GRADE INFRASTRUCTURE
         </motion.span>
         
         <div className={styles.strip}>
@@ -34,7 +34,11 @@ export default function TechStrip() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              whileHover={{ scale: 1.05, borderColor: 'rgba(99, 102, 241, 0.4)' }}
+              whileHover={{ 
+                scale: 1.05, 
+                borderColor: 'rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 0 20px rgba(99, 102, 241, 0.15)'
+              }}
             >
               <span className={styles.dot} style={{ backgroundColor: tech.color }} />
               <span className={styles.name}>{tech.name}</span>

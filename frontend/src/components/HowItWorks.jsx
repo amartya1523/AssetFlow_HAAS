@@ -47,7 +47,7 @@ export default function HowItWorks() {
       <div className={styles.container}>
         <div className={styles.header}>
           <span className={styles.badge}>Workflow</span>
-          <h2 className={styles.mainTitle}>Simple, structured lifecycle</h2>
+          <h2 className={styles.mainTitle}>Automated resource lifecycle</h2>
           <p className={styles.subtitle}>
             From initial registration to audits and reporting, govern your assets in five clear steps.
           </p>
@@ -71,7 +71,7 @@ export default function HowItWorks() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
             >
               <div className={styles.numWrapper}>
                 <span className={styles.num}>{step.num}</span>
