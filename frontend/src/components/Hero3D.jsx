@@ -15,16 +15,14 @@ function ParticleField({ count = 180 }) {
     }
   });
 
-  const [positions, sizes] = useMemo(() => {
+  const positions = useMemo(() => {
     const posArr = [];
-    const sizeArr = [];
     for (let i = 0; i < count; i++) {
       posArr.push((Math.random() - 0.5) * 12); // X
       posArr.push((Math.random() - 0.5) * 8);  // Y
       posArr.push((Math.random() - 0.5) * 8);  // Z
-      sizeArr.push(Math.random() * 0.05 + 0.02);
     }
-    return [new Float32Array(posArr), new Float32Array(sizeArr)];
+    return new Float32Array(posArr);
   }, [count]);
 
   return (
@@ -228,10 +226,12 @@ function BarcodeBadge({ posRef }) {
 }
 
 // 7. Abstract Floating Geometries to populate background
-function AbstractShape({ geometry, color, posRef }) {
+function AbstractShape({ type, color, posRef }) {
   return (
     <mesh ref={posRef}>
-      {geometry}
+      {type === 'octahedron' && <octahedronGeometry args={[0.2]} />}
+      {type === 'dodecahedron' && <dodecahedronGeometry args={[0.18]} />}
+      {type === 'cone' && <coneGeometry args={[0.15, 0.3, 4]} />}
       <meshPhysicalMaterial 
         color={color} 
         roughness={0.2} 
@@ -323,7 +323,7 @@ function FloatingAssets() {
       const targetX = state.pointer.x * 0.25;
       const targetY = state.pointer.y * 0.25;
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetY, 0.05);
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.x * 0.1, targetX, 0.05);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetX, 0.05);
     }
   });
 
@@ -337,21 +337,9 @@ function FloatingAssets() {
       <BarcodeBadge posRef={badgeRef} />
 
       {/* Abstract scattered meshes */}
-      <AbstractShape 
-        geometry={useMemo(() => new THREE.OctahedronGeometry(0.2), [])} 
-        color="#f43f5e" 
-        posRef={shape1Ref} 
-      />
-      <AbstractShape 
-        geometry={useMemo(() => new THREE.DodecahedronGeometry(0.18), [])} 
-        color="#38bdf8" 
-        posRef={shape2Ref} 
-      />
-      <AbstractShape 
-        geometry={useMemo(() => new THREE.ConeGeometry(0.15, 0.3, 4), [])} 
-        color="#fbbf24" 
-        posRef={shape3Ref} 
-      />
+      <AbstractShape type="octahedron" color="#f43f5e" posRef={shape1Ref} />
+      <AbstractShape type="dodecahedron" color="#38bdf8" posRef={shape2Ref} />
+      <AbstractShape type="cone" color="#fbbf24" posRef={shape3Ref} />
     </group>
   );
 }
@@ -373,22 +361,7 @@ export default function Hero3D() {
           <pointLight position={[-6, 6, 4]} intensity={2.5} color="#d946ef" />
           <pointLight position={[0, 0, 8]} intensity={1.5} color="#818cf8" />
           
-          {/* Positioning objects in 3D space across left and right clusters */}
-          <group position={[0, 0, 0]}>
-            {/* Left Cluster */}
-            <group position={[-2.4, 0, 0]}>
-              <Laptop posRef={useRef()} />
-            </group>
-            
-            {/* Right Cluster */}
-            <group position={[2.4, 0, 0]}>
-              <ServerStack posRef={useRef()} />
-            </group>
-
-            {/* Float everything */}
-            <FloatingAssets />
-          </group>
-
+          <FloatingAssets />
           <ParticleField count={180} />
         </Canvas>
       </Suspense>
