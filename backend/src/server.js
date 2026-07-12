@@ -1,19 +1,32 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+const config = require('./config/env');
+const createApp = require('./app');
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const app = createApp();
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Health check route
-app.get('/api/v1/health', (req, res) => {
-  res.json({ status: 'ok' });
+const server = app.listen(config.port, () => {
+  // eslint-disable-next-line no-console
+  console.log(`AssetFlow API running on port ${config.port} (${config.env})`);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Graceful shutdown — close HTTP server then disconnect Prisma
+const prisma = require('./config/prisma');
+
+const shutdown = async (signal) => {
+  // eslint-disable-next-line no-console
+  console.log(`\n${signal} received, shutting down...`);
+  server.close(async () => {
+    try {
+      await prisma.$disconnect();
+      process.exit(0);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Error during shutdown:', e);
+      process.exit(1);
+    }
+  });
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+module.exports = server;
