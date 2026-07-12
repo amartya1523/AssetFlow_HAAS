@@ -8,3 +8,26 @@ const getOverview = asyncHandler(async (req, res) => {
 });
 
 module.exports = { getOverview };
+/**
+ * GET /api/v1/dashboard/kpis
+ * Returns all KPIs needed for the dashboard in one call.
+ */
+const getKPIs = asyncHandler(async (req, res) => {
+  const kpis = await dashboardService.getDashboardKPIs();
+  return sendSuccess(res, { data: kpis });
+});
+
+/**
+ * GET /api/v1/dashboard/recent-activity
+ * Query: limit? (default 20, max 100)
+ */
+const getRecentActivity = asyncHandler(async (req, res) => {
+  const { limit } = req.query;
+  const activity = await dashboardService.getRecentActivity({ limit });
+  return sendSuccess(res, { data: activity });
+});
+
+module.exports = {
+  getKPIs,
+  getRecentActivity,
+};

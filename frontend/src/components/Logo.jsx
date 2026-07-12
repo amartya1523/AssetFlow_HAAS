@@ -1,12 +1,16 @@
 import styles from './Logo.module.css';
 
 /**
- * Circular AF identity mark used across auth screens and sidebar.
+ * AssetFlow logo image used across sidebar, auth screens, and anywhere else.
+ * `size` controls the width/height in pixels.
  */
 export default function Logo({ size = 48 }) {
   return (
-    <div className={styles.logo} style={{ width: size, height: size }}>
-      <span style={{ fontSize: size * 0.38 }}>AF</span>
-    </div>
+    <img
+      src="/logo.jpg"
+      alt="AssetFlow"
+      className={styles.logo}
+      style={{ width: size, height: size }}
+    />
   );
 }

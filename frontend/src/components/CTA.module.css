@@ -1,0 +1,122 @@
+.section {
+  padding: 8rem 2rem;
+  background-color: #030712;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0) 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gridOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: center;
+  pointer-events: none;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  position: relative;
+  z-index: 3;
+}
+
+.content {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.55) 0%, rgba(3, 7, 18, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 2.5rem;
+  padding: 6rem 4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+}
+
+.title {
+  font-family: 'Sora', 'Outfit', -apple-system, sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+  max-width: 680px;
+  background: linear-gradient(180deg, #ffffff 40%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 1.15rem;
+  color: #94a3b8;
+  line-height: 1.65;
+  max-width: 580px;
+  margin-bottom: 3.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.primaryButton {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border: none;
+  padding: 1.1rem 2.75rem;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 5rem 1.5rem;
+  }
+  
+  .content {
+    padding: 4rem 2rem;
+    border-radius: 1.75rem;
+  }
+  
+  .title {
+    font-size: 2.25rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  .primaryButton {
+    padding: 0.95rem 2.25rem;
+    font-size: 0.95rem;
+  }
+}

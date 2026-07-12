@@ -1,0 +1,199 @@
+.section {
+  padding: 8rem 2rem;
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 5rem;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+  }
+}
+
+/* Left Column Styling */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.badge {
+  background: rgba(139, 92, 246, 0.08);
+  color: #a78bfa;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 0.4rem 1.1rem;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.title {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+}
+
+.glowText {
+  background: linear-gradient(135deg, #a5b4fc 20%, #c084fc 70%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.description {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  color: #94a3b8;
+  line-height: 1.65;
+  margin-bottom: 2.5rem;
+  max-width: 560px;
+}
+
+.stats {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.statCard {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.25rem 2rem;
+  border-radius: 1.5rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statVal {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.statLbl {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Right Column Flow Cards */
+.flowList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.flowCard {
+  display: flex;
+  gap: 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flowCard:hover {
+  transform: translateX(8px);
+  border-color: rgba(139, 92, 246, 0.30);
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.08);
+}
+
+.iconWrapper {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon {
+  color: #a78bfa;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cardTitle {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cardDesc {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 4rem 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .flowList {
+    gap: 1rem;
+  }
+}
+

@@ -1,0 +1,141 @@
+.footer {
+  background-color: #030712;
+  padding: 5rem 2rem 3rem 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 5;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 4rem;
+  margin-bottom: 4rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 320px;
+}
+
+.logo {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+
+.tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.links {
+  display: flex;
+  gap: 5rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.groupTitle {
+  font-family: 'Sora', 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.link {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link:hover {
+  color: #818cf8;
+}
+
+.bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.copyright {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.metaLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.metaLink {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.metaLink:hover {
+  color: #ffffff;
+}
+
+@media (max-width: 1024px) {
+  .top {
+    flex-direction: column;
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer {
+    padding: 4rem 1.5rem 2rem 1.5rem;
+  }
+  .links {
+    flex-wrap: wrap;
+    gap: 3rem;
+  }
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

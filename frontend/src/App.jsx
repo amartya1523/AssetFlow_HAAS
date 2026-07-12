@@ -21,6 +21,7 @@ import PlatformOrganizations from './pages/PlatformOrganizations';
 import SuperAdminLogin from './pages/SuperAdminLogin';
 
 const SUPER_ADMIN_HOME = '/super-admin';
+import Home from './pages/Home';
 
 function PublicOnlyRoute() {
   const token = useAuthStore((state) => state.token);
@@ -36,6 +37,7 @@ function PublicOnlyRoute() {
   }
 
   return <Outlet />;
+  return token ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
 
 function RoleProtectedRoute({ allowedRoles }) {
@@ -43,6 +45,7 @@ function RoleProtectedRoute({ allowedRoles }) {
 
   if (!role || !allowedRoles.includes(role)) {
     return <Navigate to={role === 'SUPER_ADMIN' ? SUPER_ADMIN_HOME : '/app/dashboard'} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;
@@ -99,23 +102,23 @@ function App() {
       <AuthBootstrap>
         <Routes>
           <Route path="/" element={<DefaultRedirect />} />
+          <Route path="/" element={<Home />} />
+
+          <Route path="/signup" element={<Signup />} />
 
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           <Route
-            path="/app"
             element={(
               <RequireAuth>
                 <TenantAppLayout />
               </RequireAuth>
             )}
           >
-            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="assets" element={<Assets />} />
             <Route path="assets/:id" element={<AssetDetail />} />
