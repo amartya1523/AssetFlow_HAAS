@@ -1,0 +1,531 @@
+/* ======================================================================
+   Allocation & Transfer — Page Styles
+   Uses design tokens from styles/tokens.css
+   ====================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* ── Page header ──────────────────────────────────────────────────────── */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.pageTitle {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.pageSubtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.92rem;
+  margin-top: var(--space-xs);
+}
+
+/* ── Two-column layout ────────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ── Card shell ───────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Section header ───────────────────────────────────────────────────── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ── Form grid ────────────────────────────────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+  align-items: end;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.formActions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.93rem;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.fullSpan {
+  grid-column: 1 / -1;
+}
+
+/* ── Error / conflict banners ─────────────────────────────────────────── */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 14px;
+  margin-top: var(--space-md);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: 0.88rem;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+/* ── Conflict block (409 response) ────────────────────────────────────── */
+.conflictBlock {
+  margin-top: var(--space-md);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-warning-bg);
+}
+
+.conflictBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.conflictIcon {
+  color: var(--color-warning);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.conflictMsg {
+  font-size: 0.92rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.conflictMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  font-size: 0.8rem;
+  color: #b45309;
+}
+
+.dot {
+  color: #b45309;
+}
+
+/* ── Transfer sub-form ────────────────────────────────────────────────── */
+.transferSubForm {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--color-surface);
+}
+
+.transferTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.transferGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.transferSuccessBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-success-bg);
+  color: #065f46;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.inlineError {
+  font-size: 0.82rem;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+.tableWrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table thead {
+  background: var(--color-surface-alt);
+  position: sticky;
+  top: 0;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.tableRow {
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.tableRow:hover {
+  background: var(--color-surface-alt);
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.assetTag {
+  display: inline-block;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  margin-right: var(--space-xs);
+}
+
+.assetName {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+
+.expandCell {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.overdueText {
+  color: var(--color-danger);
+}
+
+.overdueChip {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  vertical-align: middle;
+}
+
+/* ── Expand panel ─────────────────────────────────────────────────────── */
+.expandPanel {
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+
+.expandGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fieldValue {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+/* ── Return section ───────────────────────────────────────────────────── */
+.returnSection {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.returnForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.returnActions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* ── Transfer panel cards ─────────────────────────────────────────────── */
+.transferList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.transferCard {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  background: var(--color-surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  transition: box-shadow var(--transition-fast);
+}
+
+.transferCard:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.transferCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.transferMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.transferFlow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.transferUser {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.transferArrow {
+  color: var(--color-text-muted);
+}
+
+.transferDate {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.transferReason {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.transferActions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-xs);
+}
+
+/* ── Status pills ─────────────────────────────────────────────────────── */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.pillActive {
+  background: var(--color-success-bg);
+  color: #065f46;
+}
+
+.pillReturned {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.pillOverdue {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.pillPending {
+  background: var(--color-warning-bg);
+  color: #92400e;
+}
+
+.pillApproved {
+  background: var(--color-success-bg);
+  color: #065f46;
+}
+
+.pillRejected {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+.emptyState {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.92rem;
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────────────── */
+.skeletonWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+}
+
+.skeletonRow {
+  height: 18px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--color-border-light) 25%, var(--color-border) 50%, var(--color-border-light) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .transferGrid {
+    grid-template-columns: 1fr;
+  }
+}
