@@ -15,6 +15,7 @@ const employeeRoutes = require('./routes/employee.routes');
 
 const allocationRoutes = require('./routes/allocation.routes');
 const transferRoutes = require('./routes/transfer.routes');
+const bookingRoutes = require('./routes/booking.routes');
 
 
 /**
@@ -39,6 +40,7 @@ function createApp() {
   app.use('/api/v1/employees', employeeRoutes);
   app.use('/api/v1/allocations', allocationRoutes);
   app.use('/api/v1/transfers', transferRoutes);
+  app.use('/api/v1/bookings', bookingRoutes);
 
   // --- Fallbacks (must be last) ---
   app.use(notFound);
